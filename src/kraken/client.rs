@@ -23,10 +23,16 @@ impl Client {
         }
     }
 
+    pub async fn system_time(&self) -> Result<String, reqwest::Error> {
+        let method = Method::GET;
+        let url = endpoint(Endpoints::SystemTime).unwrap();
+        let resp = self.http.request(method, url).send().await?.text().await?;
+        Ok(resp)
+    }
+
     pub async fn assets(&self) -> Result<String, reqwest::Error> {
         let method = Method::GET;
-        let raw_url = endpoint(Endpoints::Assets);
-        let url = Url::parse(&raw_url).unwrap();
+        let url = endpoint(Endpoints::Assets).unwrap();
         let resp = self.http.request(method, url).send().await?.text().await?;
         Ok(resp)
     }
@@ -34,15 +40,10 @@ impl Client {
     pub async fn ticker(&self, asset: AssetPair) -> Result<String, reqwest::Error> {
         // Clone the current HTTP client.
         let method = Method::GET;
-        let raw_url = endpoint(Endpoints::Ticker);
-        let url = Url::parse(&raw_url).unwrap();
+        let url = endpoint(Endpoints::Ticker).unwrap();
         let query_param = &[("pair", &asset.to_string())];
-        println!("Param: {:?}", query_param);
-        println!("{}", asset.to_string());
 
         let req = self.http.request(method, url).query(query_param).build()?;
-        println!("WAIT DID I MAKE IT THIS FAR?");
-        println!("{:?}", req);
         let resp = self.http.execute(req).await?.text().await?;
         Ok(resp)
     }

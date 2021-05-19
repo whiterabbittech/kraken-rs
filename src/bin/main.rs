@@ -1,4 +1,3 @@
-use dotenv;
 use kraken::{AssetPair, Client};
 use reqwest::{Method, Request, Url};
 use serde::Deserialize;
@@ -21,5 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let text = client.ticker(AssetPair::DotUsd).await?;
     // let text = client.assets().await?;
     println!("{}", text);
+    let system_time = client.system_time().await?;
+    println!("System Time: {}", system_time);
     Ok(())
 }
