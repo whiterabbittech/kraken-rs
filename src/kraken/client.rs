@@ -30,6 +30,13 @@ impl Client {
         Ok(resp)
     }
 
+    pub async fn system_status(&self) -> Result<String, reqwest::Error> {
+        let method = Method::GET;
+        let url = endpoint(Endpoints::SystemStatus).unwrap();
+        let resp = self.http.request(method, url).send().await?.text().await?;
+        Ok(resp)
+    }
+
     pub async fn assets(&self) -> Result<String, reqwest::Error> {
         let method = Method::GET;
         let url = endpoint(Endpoints::Assets).unwrap();

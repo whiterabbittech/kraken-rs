@@ -7,6 +7,7 @@ use url::ParseError;
 #[derive(Hash, PartialEq, Eq)]
 pub enum Endpoints {
     Assets,
+    SystemStatus,
     SystemTime,
     Ticker,
 }
@@ -15,6 +16,7 @@ type EndpointMap = HashMap<Endpoints, &'static str>;
 static ENDPOINTS: Lazy<RwLock<EndpointMap>> = Lazy::new(|| {
     let mut m = HashMap::new();
     m.insert(Endpoints::Assets, "/public/Assets");
+    m.insert(Endpoints::SystemStatus, "/public/SystemStatus");
     m.insert(Endpoints::SystemTime, "/public/Time");
     m.insert(Endpoints::Ticker, "/public/Ticker");
     RwLock::new(m)
