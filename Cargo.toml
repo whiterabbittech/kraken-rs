@@ -2,7 +2,7 @@
 name = "kraken"
 version = "0.1.0"
 authors = ["Robbie McKinstry <thesnowmancometh@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,3 +15,5 @@ serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 once_cell = "1.7.2"
 url = "2.2"
+ring = "0.16.20"
+data-encoding = "2.3"
