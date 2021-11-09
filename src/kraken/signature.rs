@@ -1,8 +1,6 @@
 use ring::digest::{Context, Digest, SHA256};
-use ring::{hmac, rand};
+use ring::{hmac};
 use data_encoding::BASE64;
-use ring::rand::SecureRandom;
-use ring::error::Unspecified;
 
 pub struct SignatureInput {
     pub private_key: String,
@@ -10,23 +8,6 @@ pub struct SignatureInput {
     pub encoded_payload: String,
     pub uri_path: String,
 }
-
-/*
-struct FixedBytes(String);
-
-impl FixedBytes {
-    pub fn new(val: String) -> Self {
-        FixedBytes(val)
-    }
-}
-impl SecureRandom for FixedBytes {
-    fn fill(&self, dest: &mut [u8]) -> Result<(), Unspecified> {
-        let val = self.0.clone().as_bytes();
-        dest.copy_from_slice(val);
-        Ok(())
-    }
-}
-*/
 
 impl SignatureInput {
     // Kraken's doc provide a formula for the API signature at the following URL:
@@ -43,14 +24,10 @@ impl SignatureInput {
         // • Collect the SHA.
         let digest = Self::take_sha(self.nonce, self.encoded_payload);
         // • Create the signing key.
-        // println!("Digest is: {}", &digest);
         let key = Self::build_hmac_key(self.private_key);
-        // Sign the payload.
+        // • Sign the payload.
         let signature = Self::generate_hmac(key, digest.as_ref(), self.uri_path);
-        println!("Signature is: {}", &signature);
         signature
-        // • Base64 encode the HMAC signature.
-        // HEXUPPER.encode(signature.as_bytes())
     }
 
     fn take_sha(nonce: String, encoded_payload: String) -> Digest {
@@ -60,11 +37,7 @@ impl SignatureInput {
         let concat = nonce + &encoded_payload;
         // • Take the SHA of the concatenated value.
         context.update(concat.as_bytes());
-        let digest = context.finish();
-        digest
-        //let digest_ref = digest.as_ref();       
-        // digest_ref.to_vec()
-        // HEXUPPER.encode(digest_ref)
+        context.finish()
     }
 
     fn build_hmac_key(private_key: String) -> hmac::Key {
@@ -75,27 +48,17 @@ impl SignatureInput {
         // rng.fill(&mut secret_str)?;
         // let secret = FixedBytes::new(secret_str);
         // • Build an HMAC (SHA512) using the secret key.
-        let key = hmac::Key::new(hmac::HMAC_SHA512, &secret_str);
-        key
+        hmac::Key::new(hmac::HMAC_SHA512, &secret_str)
     }
 
     fn generate_hmac(key: hmac::Key, digest: &[u8], uri_path: String) -> String {
         // • Concat the URI path with the SHA
         let uri_bytes = uri_path.as_bytes();
-        // let digest_string = String::from_utf8(digest.to_vec()).expect("SHAs are strings.");
-        // let hmac_input = uri_path + digest_string;
-        // let hmac_input = uri_path + digest;
         let hmac_input = &[uri_bytes, digest].concat();
         // • HMAC that concated value.
         let tag = hmac::sign(&key, &hmac_input);
         let tag_bytes = tag.as_ref();
         BASE64.encode(tag_bytes)
-        /*
-        match String::from_utf8(tag_bytes.clone()) {
-            Ok(result) => result,
-            Err(mistake) => panic!("{}: {:?}", mistake, tag_bytes),
-        }
-        */
     }
 }
 

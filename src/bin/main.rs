@@ -1,11 +1,6 @@
 use kraken::{AssetPair, Client};
-use reqwest::{Method, Request, Url};
 use serde::Deserialize;
 use std::env;
-use std::time::Duration;
-use tower::service_fn;
-use tower::Service;
-use tower::ServiceExt;
 
 #[derive(Deserialize, Debug)]
 struct Ip {

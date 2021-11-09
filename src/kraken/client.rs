@@ -1,10 +1,8 @@
-use crate::kraken::{endpoint, AssetPair, Endpoints};
+use crate::kraken::{endpoint, AssetPair, Endpoints, signature::SignatureInput};
 use chrono::prelude::*;
-use data_encoding::HEXUPPER;
+use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
 use reqwest::{Method, Request, Url};
-use ring::digest::{Context, Digest, SHA256};
-use std::time::Duration;
 use tower::service_fn;
 use tower::{Service, ServiceExt};
 
@@ -32,12 +30,12 @@ impl Client {
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(Endpoints::AccountBalance).unwrap();
-        let query_param = &[("nonce", &nonce)];
+        let form_param = &[("nonce", &nonce)];
         // Next, we have to attach the API Key header.
         let mut req = self
             .http
             .request(method, url)
-            .query(query_param)
+            .form(form_param)
             .header("API-Key", api_key)
             .header(CONTENT_TYPE, content_type)
             .build()?;
@@ -53,16 +51,17 @@ impl Client {
 
     pub fn get_kraken_signature(&self, nonce: String, req: &Request) -> String {
         let path = req.url().path();
-        println!("Path is: {}", &path);
-        let query = req.url().query().unwrap();
-        let secret = &self.private_key;
+        let req_body = req.body().unwrap().as_bytes().unwrap().to_vec();
+        let body_str = String::from_utf8(req_body).unwrap();
+        // let req_body = String::from_utf8(req.body().unwrap().as_bytes()).unwrap();
         // Here, we need to calculat the API-Sign
-        let mut context = Context::new(&SHA256);
-        let concat = nonce + query;
-        context.update(concat.as_bytes());
-        let digest = context.finish();
-        let digest_ref = digest.as_ref();
-        HEXUPPER.encode(digest_ref)
+        let signature = SignatureInput{
+            private_key: self.private_key.clone(),
+            nonce,
+            encoded_payload: body_str,
+            uri_path: path.to_owned(),
+        };
+        signature.sign()
     }
 
     pub async fn system_time(&self) -> Result<String, reqwest::Error> {
