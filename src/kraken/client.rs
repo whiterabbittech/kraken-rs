@@ -1,4 +1,4 @@
-use crate::kraken::{endpoint, AssetPair, Endpoints, signature::SignatureInput};
+use crate::kraken::{endpoint, AssetPair, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, signature::SignatureInput};
 use chrono::prelude::*;
 use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
@@ -29,7 +29,7 @@ impl Client {
         let method = Method::POST;
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
-        let url = endpoint(Endpoints::AccountBalance).unwrap();
+        let url = endpoint(ACCOUNT_BALANCE);
         let form_param = &[("nonce", &nonce)];
         // Next, we have to attach the API Key header.
         let mut req = self
@@ -40,11 +40,9 @@ impl Client {
             .header(CONTENT_TYPE, content_type)
             .build()?;
         let signature = self.get_kraken_signature(nonce, &req);
-        println!("Signature: {}", signature);
         // We also need to attach the API-Sign header.
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
-        println!("Debugging request: {:?}", req);
         let resp = self.http.execute(req).await?.text().await?;
         Ok(resp)
     }
@@ -66,21 +64,21 @@ impl Client {
 
     pub async fn system_time(&self) -> Result<String, reqwest::Error> {
         let method = Method::GET;
-        let url = endpoint(Endpoints::SystemTime).unwrap();
+        let url = endpoint(SYSTEM_TIME);
         let resp = self.http.request(method, url).send().await?.text().await?;
         Ok(resp)
     }
 
     pub async fn system_status(&self) -> Result<String, reqwest::Error> {
         let method = Method::GET;
-        let url = endpoint(Endpoints::SystemStatus).unwrap();
+        let url = endpoint(SYSTEM_STATUS);
         let resp = self.http.request(method, url).send().await?.text().await?;
         Ok(resp)
     }
 
     pub async fn assets(&self) -> Result<String, reqwest::Error> {
         let method = Method::GET;
-        let url = endpoint(Endpoints::Assets).unwrap();
+        let url = endpoint(ASSETS);
         let resp = self.http.request(method, url).send().await?.text().await?;
         Ok(resp)
     }
@@ -88,7 +86,7 @@ impl Client {
     pub async fn ticker(&self, asset: AssetPair) -> Result<String, reqwest::Error> {
         // Clone the current HTTP client.
         let method = Method::GET;
-        let url = endpoint(Endpoints::Ticker).unwrap();
+        let url = endpoint(TICKER);
         let query_param = &[("pair", &asset.to_string())];
 
         let req = self.http.request(method, url).query(query_param).build()?;
