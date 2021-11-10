@@ -91,10 +91,14 @@ impl Client {
         signature.sign()
     }
 
-    pub async fn system_time(&self) -> Result<String, reqwest::Error> {
+    pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
         let method = Method::GET;
         let url = endpoint(SYSTEM_TIME);
-        let resp = self.http.request(method, url).send().await?.text().await?;
+        let resp = self.http.request(method, url)
+            .send()
+            .await?
+            .json::<payload::ServerTimeResponse>()
+            .await?;
         Ok(resp)
     }
 

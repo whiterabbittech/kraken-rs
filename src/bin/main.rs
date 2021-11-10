@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let asset = "DOT".to_owned();
     // let text = client.assets().await?;
     println!("{}", text);
-    let system_time = client.system_time().await?;
+    let system_time = client.server_time().await?;
     println!("System Time: {}", system_time);
     let system_status = client.system_status().await?;
     println!("System Status: {}", system_status);
