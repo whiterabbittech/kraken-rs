@@ -1,4 +1,5 @@
-use crate::kraken::{endpoint, AssetPair, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, signature::SignatureInput};
+use crate::kraken::{endpoint, AssetPair, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, signature::SignatureInput};
+use crate::kraken::payload;
 use chrono::prelude::*;
 use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
@@ -30,12 +31,41 @@ impl Client {
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(ACCOUNT_BALANCE);
-        let form_param = &[("nonce", &nonce)];
+        let form_param = payload::AccountBalanceInput{
+            nonce: nonce.clone(),
+        };
         // Next, we have to attach the API Key header.
         let mut req = self
             .http
             .request(method, url)
-            .form(form_param)
+            .form(&form_param)
+            .header("API-Key", api_key)
+            .header(CONTENT_TYPE, content_type)
+            .build()?;
+        let signature = self.get_kraken_signature(nonce, &req);
+        // We also need to attach the API-Sign header.
+        let api_sign = HeaderValue::from_str(&signature).unwrap();
+        req.headers_mut().insert("API-Sign", api_sign);
+        let resp = self.http.execute(req).await?.text().await?;
+        Ok(resp)
+    }
+
+    pub async fn open_orders(&self, trades: Option<bool>, user_ref: Option<u32>) -> Result<String, reqwest::Error> {
+        let nonce = self.nonce();
+        let method = Method::POST;
+        let api_key = &self.api_key;
+        let content_type = "application/x-www-form-urlencoded; charset=utf-8";
+        let url = endpoint(OPEN_ORDERS);
+        let form_param = payload::OpenOrdersInput{
+            nonce: nonce.clone(),
+            trades,
+            user_ref,
+        };
+        // Next, we have to attach the API Key header.
+        let mut req = self
+            .http
+            .request(method, url)
+            .form(&form_param)
             .header("API-Key", api_key)
             .header(CONTENT_TYPE, content_type)
             .build()?;
@@ -51,7 +81,6 @@ impl Client {
         let path = req.url().path();
         let req_body = req.body().unwrap().as_bytes().unwrap().to_vec();
         let body_str = String::from_utf8(req_body).unwrap();
-        // let req_body = String::from_utf8(req.body().unwrap().as_bytes()).unwrap();
         // Here, we need to calculat the API-Sign
         let signature = SignatureInput{
             private_key: self.private_key.clone(),
@@ -100,16 +129,9 @@ impl Client {
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(TRADE_BALANCE);
-        let form_param = match asset {
-            Some(val) => {
-                let asset = val.clone();
-                let nonce = nonce.clone();
-                vec![("nonce", nonce), ("asset", asset)]
-            },
-            None => {
-                let nonce = nonce.clone();
-                vec![("nonce", nonce)]
-            },
+        let form_param = payload::TradeBalanceInput{
+            nonce: nonce.clone(),
+            asset,
         };
         // Next, we have to attach the API Key header.
         let mut req = self

@@ -1,7 +1,8 @@
 pub use client::Client;
 pub use asset_pair::AssetPair;
-pub use endpoints::{endpoint, SYSTEM_TIME, SYSTEM_STATUS, ACCOUNT_BALANCE, TICKER, ASSETS, TRADE_BALANCE};
+pub use endpoints::{endpoint, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ACCOUNT_BALANCE, TICKER, ASSETS, TRADE_BALANCE};
 mod client;
 mod asset_pair;
 mod endpoints;
 mod signature;
+mod payload;
