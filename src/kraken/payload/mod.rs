@@ -1,4 +1,4 @@
-pub use account_balance::AccountBalanceInput;
+pub use account_balance::{AccountBalanceInput, AccountBalanceResponse};
 pub use open_orders::OpenOrdersInput;
 pub use trade_balance::TradeBalanceInput;
 pub use server_time::ServerTimeResponse;
