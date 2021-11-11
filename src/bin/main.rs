@@ -26,5 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Account Balance: {}", account_balance);
     let trade_balance = client.trade_balance(Some(asset)).await?;
     println!("Trade Balance: {}", trade_balance);
+    // let recent_spreads = client.recent_spreads("XETHXXBT".to_owned(), None).await?;
+    // println!("Recent Spreads: {:#?}", recent_spreads.result.pair);
     Ok(())
 }
