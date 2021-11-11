@@ -25,7 +25,7 @@ impl Client {
         }
     }
 
-    pub async fn account_balance(&self) -> Result<String, reqwest::Error> {
+    pub async fn account_balance(&self) -> Result<payload::AccountBalanceResponse, reqwest::Error> {
         let nonce = self.nonce();
         let method = Method::POST;
         let api_key = &self.api_key;
@@ -46,7 +46,10 @@ impl Client {
         // We also need to attach the API-Sign header.
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
-        let resp = self.http.execute(req).await?.text().await?;
+        let resp = self.http.execute(req)
+            .await?
+            .json::<payload::AccountBalanceResponse>()
+            .await?;
         Ok(resp)
     }
 
