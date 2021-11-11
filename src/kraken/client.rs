@@ -1,4 +1,4 @@
-use crate::kraken::{endpoint, AssetPair, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, signature::SignatureInput};
+use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, signature::SignatureInput};
 use crate::kraken::payload;
 use chrono::prelude::*;
 use std::time::Duration;
@@ -117,6 +117,23 @@ impl Client {
         let method = Method::GET;
         let url = endpoint(ASSETS);
         let resp = self.http.request(method, url).send().await?.text().await?;
+        Ok(resp)
+    }
+
+    pub async fn recent_spreads(&self, pair: String, since: Option<u64>) -> Result<payload::RecentSpreadsResponse, reqwest::Error> {
+        let method = Method::GET;
+        let url = endpoint(RECENT_SPREADS);
+        let query_param = payload::RecentSpreadsInput{pair, since};
+        // Next, we have to attach the API Key header.
+        let req = self
+            .http
+            .request(method, url)
+            .query(&query_param)
+            .build()?;
+        let resp = self.http.execute(req)
+            .await?
+            .json::<payload::RecentSpreadsResponse>()
+            .await?;
         Ok(resp)
     }
 
