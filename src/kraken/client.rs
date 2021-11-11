@@ -102,10 +102,14 @@ impl Client {
         Ok(resp)
     }
 
-    pub async fn system_status(&self) -> Result<String, reqwest::Error> {
+    pub async fn system_status(&self) -> Result<payload::SystemStatusResponse, reqwest::Error> {
         let method = Method::GET;
         let url = endpoint(SYSTEM_STATUS);
-        let resp = self.http.request(method, url).send().await?.text().await?;
+        let resp = self.http.request(method, url)
+            .send()
+            .await?
+            .json::<payload::SystemStatusResponse>()
+            .await?;
         Ok(resp)
     }
 
