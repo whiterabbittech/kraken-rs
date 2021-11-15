@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("System Time: {}", system_time);
     let system_status = client.system_status().await?;
     println!("System Status: {}", system_status);
-    // let assets = client.assets().await?;
+    // let assets = client.asset_info(Some(asset.clone()), None).await?;
     // println!("Assets: {}", assets);
     let account_balance = client.account_balance().await?;
     println!("Account Balance: {}", account_balance);

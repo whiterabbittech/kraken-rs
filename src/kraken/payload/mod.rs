@@ -4,6 +4,7 @@ pub use trade_balance::TradeBalanceInput;
 pub use server_time::ServerTimeResponse;
 pub use system_status::SystemStatusResponse;
 pub use recent_spreads::{RecentSpreadsInput, RecentSpreadsResponse};
+pub use asset_info::{AssetInfoInput, AssetInfoResponse};
 
 mod account_balance;
 mod open_orders;
@@ -11,3 +12,4 @@ mod trade_balance;
 mod server_time;
 mod system_status;
 mod recent_spreads;
+mod asset_info;

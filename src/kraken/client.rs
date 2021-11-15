@@ -1,5 +1,5 @@
-use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE};
-use crate::kraken::payload;
+use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSET_INFO, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE};
+use crate::kraken::payload::{self, AssetInfoInput, AssetInfoResponse};
 use crate::kraken::signature::get_kraken_signature;
 use crate::kraken::request_builder::{PrivacyLevel, RequestBuilder};
 use chrono::prelude::*;
@@ -76,6 +76,18 @@ impl Client {
         Ok(resp)
     }
 
+    pub async fn asset_info(&self, asset: Option<String>, asset_class: Option<String>) -> Result<AssetInfoResponse, reqwest::Error> {
+        let client = &self.http;
+        let req = RequestBuilder {
+            method: Method::GET,
+            url: endpoint(ASSET_INFO),
+            form_params: Some(AssetInfoInput{asset, asset_class}),
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp: AssetInfoResponse = req.execute(client).await?;
+        Ok(resp)
+    }
+
 ///////////////////////////////////////////////////////////////////////////
 // Everything under this line does not strongly type their responses. /////
 ///////////////////////////////////////////////////////////////////////////
@@ -122,13 +134,6 @@ impl Client {
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
         let resp = self.http.execute(req).await?.text().await?;
-        Ok(resp)
-    }
-
-    pub async fn assets(&self) -> Result<String, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(ASSETS);
-        let resp = self.http.request(method, url).send().await?.text().await?;
         Ok(resp)
     }
 
