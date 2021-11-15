@@ -1,6 +1,7 @@
 use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE};
 use crate::kraken::payload;
 use crate::kraken::signature::get_kraken_signature;
+use crate::kraken::request_builder::{PrivacyLevel, RequestBuilder};
 use chrono::prelude::*;
 use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
@@ -24,6 +25,29 @@ impl Client {
             api_key,
             private_key,
         }
+    }
+
+    pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
+        let req = RequestBuilder::<()>{
+            method: Method::GET,
+            url: endpoint(SYSTEM_TIME),
+            form_params: None,
+            privacy_level: PrivacyLevel::Public,
+        };
+        let client = &self.http;
+        let resp: payload::ServerTimeResponse = req.execute(client).await?;
+        Ok(resp)
+    }
+
+    pub async fn system_status(&self) -> Result<payload::SystemStatusResponse, reqwest::Error> {
+        let method = Method::GET;
+        let url = endpoint(SYSTEM_STATUS);
+        let resp = self.http.request(method, url)
+            .send()
+            .await?
+            .json::<payload::SystemStatusResponse>()
+            .await?;
+        Ok(resp)
     }
 
     pub async fn account_balance(&self) -> Result<payload::AccountBalanceResponse, reqwest::Error> {
@@ -80,28 +104,6 @@ impl Client {
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
         let resp = self.http.execute(req).await?.text().await?;
-        Ok(resp)
-    }
-
-    pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(SYSTEM_TIME);
-        let resp = self.http.request(method, url)
-            .send()
-            .await?
-            .json::<payload::ServerTimeResponse>()
-            .await?;
-        Ok(resp)
-    }
-
-    pub async fn system_status(&self) -> Result<payload::SystemStatusResponse, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(SYSTEM_STATUS);
-        let resp = self.http.request(method, url)
-            .send()
-            .await?
-            .json::<payload::SystemStatusResponse>()
-            .await?;
         Ok(resp)
     }
 
