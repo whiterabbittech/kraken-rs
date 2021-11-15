@@ -28,54 +28,45 @@ impl Client {
     }
 
     pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
+        let client = &self.http;
         let req = RequestBuilder::<()>{
             method: Method::GET,
             url: endpoint(SYSTEM_TIME),
             form_params: None,
             privacy_level: PrivacyLevel::Public,
         };
-        let client = &self.http;
-        let resp: payload::ServerTimeResponse = req.execute(client).await?;
+        let resp = req.execute(client).await?;
         Ok(resp)
     }
 
     pub async fn system_status(&self) -> Result<payload::SystemStatusResponse, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(SYSTEM_STATUS);
-        let resp = self.http.request(method, url)
-            .send()
-            .await?
-            .json::<payload::SystemStatusResponse>()
-            .await?;
+        let client = &self.http;
+        let req = RequestBuilder::<()> {
+            method: Method::GET,
+            url: endpoint(SYSTEM_STATUS),
+            form_params: None,
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp = req.execute(client).await?;
         Ok(resp)
     }
 
     pub async fn account_balance(&self) -> Result<payload::AccountBalanceResponse, reqwest::Error> {
         let nonce = self.nonce();
-        let method = Method::POST;
-        let api_key = &self.api_key;
-        let content_type = "application/x-www-form-urlencoded; charset=utf-8";
-        let private_key = self.private_key.clone();
-        let url = endpoint(ACCOUNT_BALANCE);
-        let form_param = payload::AccountBalanceInput{
-            nonce: nonce.clone(),
+        let client = &self.http;
+        let req = RequestBuilder {
+            method: Method::POST,
+            url: endpoint(ACCOUNT_BALANCE),
+            form_params: Some(payload::AccountBalanceInput{
+                nonce: nonce.clone(),
+            }),
+            privacy_level: PrivacyLevel::Private{
+                nonce,
+                api_key: self.api_key.clone(),
+                private_key: self.private_key.clone(),
+            },
         };
-        // Next, we have to attach the API Key header.
-        let mut req = self
-            .http
-            .request(method, url)
-            .form(&form_param)
-            .header("API-Key", api_key)
-            .header(CONTENT_TYPE, content_type)
-            .build()?;
-        let signature = get_kraken_signature(nonce, private_key, &req) ;
-        // We also need to attach the API-Sign header.
-        let api_sign = HeaderValue::from_str(&signature).unwrap();
-        req.headers_mut().insert("API-Sign", api_sign);
-        let resp = self.http.execute(req)
-            .await?
-            .json::<payload::AccountBalanceResponse>()
-            .await?;
+        let resp = req.execute(client).await?;
         Ok(resp)
     }
 
