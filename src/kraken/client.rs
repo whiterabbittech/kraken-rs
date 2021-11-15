@@ -1,5 +1,7 @@
-use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, signature::SignatureInput};
-use crate::kraken::payload;
+use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSET_INFO, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE};
+use crate::kraken::payload::{self, AssetInfoInput, AssetInfoResponse};
+use crate::kraken::signature::get_kraken_signature;
+use crate::kraken::request_builder::{PrivacyLevel, RequestBuilder};
 use chrono::prelude::*;
 use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
@@ -25,103 +27,70 @@ impl Client {
         }
     }
 
-    pub async fn account_balance(&self) -> Result<payload::AccountBalanceResponse, reqwest::Error> {
-        let nonce = self.nonce();
-        let method = Method::POST;
-        let api_key = &self.api_key;
-        let content_type = "application/x-www-form-urlencoded; charset=utf-8";
-        let url = endpoint(ACCOUNT_BALANCE);
-        let form_param = payload::AccountBalanceInput{
-            nonce: nonce.clone(),
-        };
-        // Next, we have to attach the API Key header.
-        let mut req = self
-            .http
-            .request(method, url)
-            .form(&form_param)
-            .header("API-Key", api_key)
-            .header(CONTENT_TYPE, content_type)
-            .build()?;
-        let signature = self.get_kraken_signature(nonce, &req);
-        // We also need to attach the API-Sign header.
-        let api_sign = HeaderValue::from_str(&signature).unwrap();
-        req.headers_mut().insert("API-Sign", api_sign);
-        let resp = self.http.execute(req)
-            .await?
-            .json::<payload::AccountBalanceResponse>()
-            .await?;
-        Ok(resp)
-    }
-
-    pub async fn open_orders(&self, trades: Option<bool>, user_ref: Option<u32>) -> Result<String, reqwest::Error> {
-        let nonce = self.nonce();
-        let method = Method::POST;
-        let api_key = &self.api_key;
-        let content_type = "application/x-www-form-urlencoded; charset=utf-8";
-        let url = endpoint(OPEN_ORDERS);
-        let form_param = payload::OpenOrdersInput{
-            nonce: nonce.clone(),
-            trades,
-            user_ref,
-        };
-        // Next, we have to attach the API Key header.
-        let mut req = self
-            .http
-            .request(method, url)
-            .form(&form_param)
-            .header("API-Key", api_key)
-            .header(CONTENT_TYPE, content_type)
-            .build()?;
-        let signature = self.get_kraken_signature(nonce, &req);
-        // We also need to attach the API-Sign header.
-        let api_sign = HeaderValue::from_str(&signature).unwrap();
-        req.headers_mut().insert("API-Sign", api_sign);
-        let resp = self.http.execute(req).await?.text().await?;
-        Ok(resp)
-    }
-
-    pub fn get_kraken_signature(&self, nonce: String, req: &Request) -> String {
-        let path = req.url().path();
-        let req_body = req.body().unwrap().as_bytes().unwrap().to_vec();
-        let body_str = String::from_utf8(req_body).unwrap();
-        // Here, we need to calculat the API-Sign
-        let signature = SignatureInput{
-            private_key: self.private_key.clone(),
-            nonce,
-            encoded_payload: body_str,
-            uri_path: path.to_owned(),
-        };
-        signature.sign()
+    fn nonce(&self) -> String {
+        let utc: DateTime<Utc> = Utc::now();
+        let ms = utc.timestamp_millis();
+        ms.to_string()
     }
 
     pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(SYSTEM_TIME);
-        let resp = self.http.request(method, url)
-            .send()
-            .await?
-            .json::<payload::ServerTimeResponse>()
-            .await?;
+        let client = &self.http;
+        let req = RequestBuilder::<()>{
+            method: Method::GET,
+            url: endpoint(SYSTEM_TIME),
+            form_params: None,
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp = req.execute(client).await?;
         Ok(resp)
     }
 
     pub async fn system_status(&self) -> Result<payload::SystemStatusResponse, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(SYSTEM_STATUS);
-        let resp = self.http.request(method, url)
-            .send()
-            .await?
-            .json::<payload::SystemStatusResponse>()
-            .await?;
+        let client = &self.http;
+        let req = RequestBuilder::<()> {
+            method: Method::GET,
+            url: endpoint(SYSTEM_STATUS),
+            form_params: None,
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp = req.execute(client).await?;
         Ok(resp)
     }
 
-    pub async fn assets(&self) -> Result<String, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(ASSETS);
-        let resp = self.http.request(method, url).send().await?.text().await?;
+    pub async fn account_balance(&self) -> Result<payload::AccountBalanceResponse, reqwest::Error> {
+        let nonce = self.nonce();
+        let client = &self.http;
+        let req = RequestBuilder {
+            method: Method::POST,
+            url: endpoint(ACCOUNT_BALANCE),
+            form_params: Some(payload::AccountBalanceInput{
+                nonce: nonce.clone(),
+            }),
+            privacy_level: PrivacyLevel::Private{
+                nonce,
+                api_key: self.api_key.clone(),
+                private_key: self.private_key.clone(),
+            },
+        };
+        let resp = req.execute(client).await?;
         Ok(resp)
     }
+
+    pub async fn asset_info(&self, asset: Option<String>, asset_class: Option<String>) -> Result<AssetInfoResponse, reqwest::Error> {
+        let client = &self.http;
+        let req = RequestBuilder {
+            method: Method::GET,
+            url: endpoint(ASSET_INFO),
+            form_params: Some(AssetInfoInput{asset, asset_class}),
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp: AssetInfoResponse = req.execute(client).await?;
+        Ok(resp)
+    }
+
+///////////////////////////////////////////////////////////////////////////
+// Everything under this line does not strongly type their responses. /////
+///////////////////////////////////////////////////////////////////////////
 
     pub async fn recent_spreads(&self, pair: String, since: Option<u64>) -> Result<payload::RecentSpreadsResponse, reqwest::Error> {
         let method = Method::GET;
@@ -137,6 +106,34 @@ impl Client {
             .await?
             .json::<payload::RecentSpreadsResponse>()
             .await?;
+        Ok(resp)
+    }
+
+    pub async fn open_orders(&self, trades: Option<bool>, user_ref: Option<u32>) -> Result<String, reqwest::Error> {
+        let nonce = self.nonce();
+        let method = Method::POST;
+        let api_key = &self.api_key;
+        let content_type = "application/x-www-form-urlencoded; charset=utf-8";
+        let url = endpoint(OPEN_ORDERS);
+        let private_key = self.private_key.clone();
+        let form_param = payload::OpenOrdersInput{
+            nonce: nonce.clone(),
+            trades,
+            user_ref,
+        };
+        // Next, we have to attach the API Key header.
+        let mut req = self
+            .http
+            .request(method, url)
+            .form(&form_param)
+            .header("API-Key", api_key)
+            .header(CONTENT_TYPE, content_type)
+            .build()?;
+        let signature = get_kraken_signature(nonce, private_key, &req);
+        // We also need to attach the API-Sign header.
+        let api_sign = HeaderValue::from_str(&signature).unwrap();
+        req.headers_mut().insert("API-Sign", api_sign);
+        let resp = self.http.execute(req).await?.text().await?;
         Ok(resp)
     }
 
@@ -157,6 +154,7 @@ impl Client {
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(TRADE_BALANCE);
+        let private_key = self.private_key.clone();
         let form_param = payload::TradeBalanceInput{
             nonce: nonce.clone(),
             asset,
@@ -169,18 +167,12 @@ impl Client {
             .header("API-Key", api_key)
             .header(CONTENT_TYPE, content_type)
             .build()?;
-        let signature = self.get_kraken_signature(nonce, &req);
+        let signature = get_kraken_signature(nonce, private_key, &req);
         // We also need to attach the API-Sign header.
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
         let resp = self.http.execute(req).await?.text().await?;
         Ok(resp)
-    }
-
-    fn nonce(&self) -> String {
-        let utc: DateTime<Utc> = Utc::now();
-        let ms = utc.timestamp_millis();
-        ms.to_string()
     }
 
     pub async fn make_request(&self) -> Result<(), Box<dyn std::error::Error>> {
