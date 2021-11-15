@@ -1,6 +1,6 @@
 use serde::ser::{Serialize};
 use serde::de::Deserialize;
-use reqwest::{Url, Method, Request};
+use reqwest::{Url, Method};
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
 use crate::kraken::signature::get_kraken_signature;
 

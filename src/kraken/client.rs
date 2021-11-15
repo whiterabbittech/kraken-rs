@@ -27,6 +27,12 @@ impl Client {
         }
     }
 
+    fn nonce(&self) -> String {
+        let utc: DateTime<Utc> = Utc::now();
+        let ms = utc.timestamp_millis();
+        ms.to_string()
+    }
+
     pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
         let client = &self.http;
         let req = RequestBuilder::<()>{
@@ -70,6 +76,27 @@ impl Client {
         Ok(resp)
     }
 
+///////////////////////////////////////////////////////////////////////////
+// Everything under this line does not strongly type their responses. /////
+///////////////////////////////////////////////////////////////////////////
+
+    pub async fn recent_spreads(&self, pair: String, since: Option<u64>) -> Result<payload::RecentSpreadsResponse, reqwest::Error> {
+        let method = Method::GET;
+        let url = endpoint(RECENT_SPREADS);
+        let query_param = payload::RecentSpreadsInput{pair, since};
+        // Next, we have to attach the API Key header.
+        let req = self
+            .http
+            .request(method, url)
+            .query(&query_param)
+            .build()?;
+        let resp = self.http.execute(req)
+            .await?
+            .json::<payload::RecentSpreadsResponse>()
+            .await?;
+        Ok(resp)
+    }
+
     pub async fn open_orders(&self, trades: Option<bool>, user_ref: Option<u32>) -> Result<String, reqwest::Error> {
         let nonce = self.nonce();
         let method = Method::POST;
@@ -102,23 +129,6 @@ impl Client {
         let method = Method::GET;
         let url = endpoint(ASSETS);
         let resp = self.http.request(method, url).send().await?.text().await?;
-        Ok(resp)
-    }
-
-    pub async fn recent_spreads(&self, pair: String, since: Option<u64>) -> Result<payload::RecentSpreadsResponse, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(RECENT_SPREADS);
-        let query_param = payload::RecentSpreadsInput{pair, since};
-        // Next, we have to attach the API Key header.
-        let req = self
-            .http
-            .request(method, url)
-            .query(&query_param)
-            .build()?;
-        let resp = self.http.execute(req)
-            .await?
-            .json::<payload::RecentSpreadsResponse>()
-            .await?;
         Ok(resp)
     }
 
@@ -158,12 +168,6 @@ impl Client {
         req.headers_mut().insert("API-Sign", api_sign);
         let resp = self.http.execute(req).await?.text().await?;
         Ok(resp)
-    }
-
-    fn nonce(&self) -> String {
-        let utc: DateTime<Utc> = Utc::now();
-        let ms = utc.timestamp_millis();
-        ms.to_string()
     }
 
     pub async fn make_request(&self) -> Result<(), Box<dyn std::error::Error>> {
