@@ -1,5 +1,6 @@
 use ring::digest::{Context, Digest, SHA256};
 use ring::{hmac};
+use reqwest::Request;
 use data_encoding::BASE64;
 
 pub struct SignatureInput {
@@ -60,6 +61,20 @@ impl SignatureInput {
         let tag_bytes = tag.as_ref();
         BASE64.encode(tag_bytes)
     }
+}
+
+pub fn get_kraken_signature(nonce: String, private_key: String, req: &Request) -> String {
+    let path = req.url().path();
+    let req_body = req.body().unwrap().as_bytes().unwrap().to_vec();
+    let body_str = String::from_utf8(req_body).unwrap();
+    // Here, we need to calculat the API-Sign
+    let signature = SignatureInput{
+        private_key: private_key,
+        nonce,
+        encoded_payload: body_str,
+        uri_path: path.to_owned(),
+    };
+    signature.sign()
 }
 
 #[cfg(test)]

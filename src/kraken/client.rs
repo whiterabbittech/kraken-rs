@@ -1,5 +1,6 @@
-use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, signature::SignatureInput};
+use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSETS, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE};
 use crate::kraken::payload;
+use crate::kraken::signature::get_kraken_signature;
 use chrono::prelude::*;
 use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
@@ -30,6 +31,7 @@ impl Client {
         let method = Method::POST;
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
+        let private_key = self.private_key.clone();
         let url = endpoint(ACCOUNT_BALANCE);
         let form_param = payload::AccountBalanceInput{
             nonce: nonce.clone(),
@@ -42,7 +44,7 @@ impl Client {
             .header("API-Key", api_key)
             .header(CONTENT_TYPE, content_type)
             .build()?;
-        let signature = self.get_kraken_signature(nonce, &req);
+        let signature = get_kraken_signature(nonce, private_key, &req) ;
         // We also need to attach the API-Sign header.
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
@@ -59,6 +61,7 @@ impl Client {
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(OPEN_ORDERS);
+        let private_key = self.private_key.clone();
         let form_param = payload::OpenOrdersInput{
             nonce: nonce.clone(),
             trades,
@@ -72,26 +75,12 @@ impl Client {
             .header("API-Key", api_key)
             .header(CONTENT_TYPE, content_type)
             .build()?;
-        let signature = self.get_kraken_signature(nonce, &req);
+        let signature = get_kraken_signature(nonce, private_key, &req);
         // We also need to attach the API-Sign header.
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
         let resp = self.http.execute(req).await?.text().await?;
         Ok(resp)
-    }
-
-    pub fn get_kraken_signature(&self, nonce: String, req: &Request) -> String {
-        let path = req.url().path();
-        let req_body = req.body().unwrap().as_bytes().unwrap().to_vec();
-        let body_str = String::from_utf8(req_body).unwrap();
-        // Here, we need to calculat the API-Sign
-        let signature = SignatureInput{
-            private_key: self.private_key.clone(),
-            nonce,
-            encoded_payload: body_str,
-            uri_path: path.to_owned(),
-        };
-        signature.sign()
     }
 
     pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
@@ -157,6 +146,7 @@ impl Client {
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(TRADE_BALANCE);
+        let private_key = self.private_key.clone();
         let form_param = payload::TradeBalanceInput{
             nonce: nonce.clone(),
             asset,
@@ -169,7 +159,7 @@ impl Client {
             .header("API-Key", api_key)
             .header(CONTENT_TYPE, content_type)
             .build()?;
-        let signature = self.get_kraken_signature(nonce, &req);
+        let signature = get_kraken_signature(nonce, private_key, &req);
         // We also need to attach the API-Sign header.
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
