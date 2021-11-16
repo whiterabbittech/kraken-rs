@@ -1,7 +1,7 @@
 use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSET_INFO, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE};
-use crate::kraken::payload::{self, AssetInfoInput, AssetInfoResponse};
+use crate::kraken::payload::{self, RecentSpreadsInput, RecentSpreadsResponse, AssetInfoInput, AssetInfoResponse};
 use crate::kraken::signature::get_kraken_signature;
-use crate::kraken::request_builder::{PrivacyLevel, RequestBuilder};
+use crate::kraken::request_builder::{ParamEncoding, PrivacyLevel, RequestBuilder};
 use chrono::prelude::*;
 use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
@@ -38,7 +38,8 @@ impl Client {
         let req = RequestBuilder::<()>{
             method: Method::GET,
             url: endpoint(SYSTEM_TIME),
-            form_params: None,
+            params: None,
+            param_encoding: ParamEncoding::FormEncoded,
             privacy_level: PrivacyLevel::Public,
         };
         let resp = req.execute(client).await?;
@@ -50,7 +51,8 @@ impl Client {
         let req = RequestBuilder::<()> {
             method: Method::GET,
             url: endpoint(SYSTEM_STATUS),
-            form_params: None,
+            params: None,
+            param_encoding: ParamEncoding::QueryEncoded,
             privacy_level: PrivacyLevel::Public,
         };
         let resp = req.execute(client).await?;
@@ -63,7 +65,8 @@ impl Client {
         let req = RequestBuilder {
             method: Method::POST,
             url: endpoint(ACCOUNT_BALANCE),
-            form_params: Some(payload::AccountBalanceInput{
+            param_encoding: ParamEncoding::FormEncoded,
+            params: Some(payload::AccountBalanceInput{
                 nonce: nonce.clone(),
             }),
             privacy_level: PrivacyLevel::Private{
@@ -81,33 +84,30 @@ impl Client {
         let req = RequestBuilder {
             method: Method::GET,
             url: endpoint(ASSET_INFO),
-            form_params: Some(AssetInfoInput{asset, asset_class}),
+            param_encoding: ParamEncoding::FormEncoded,
+            params: Some(AssetInfoInput{asset, asset_class}),
             privacy_level: PrivacyLevel::Public,
         };
         let resp: AssetInfoResponse = req.execute(client).await?;
         Ok(resp)
     }
 
+    pub async fn recent_spreads(&self, pair: String, since: Option<u64>) -> Result<RecentSpreadsResponse, reqwest::Error> {
+        let client = &self.http;
+        let req = RequestBuilder {
+            method: Method::GET,
+            url: endpoint(RECENT_SPREADS),
+            param_encoding: ParamEncoding::QueryEncoded,
+            params: Some(RecentSpreadsInput{pair, since}),
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp = req.execute(client).await?;
+        Ok(resp)
+    }
+
 ///////////////////////////////////////////////////////////////////////////
 // Everything under this line does not strongly type their responses. /////
 ///////////////////////////////////////////////////////////////////////////
-
-    pub async fn recent_spreads(&self, pair: String, since: Option<u64>) -> Result<payload::RecentSpreadsResponse, reqwest::Error> {
-        let method = Method::GET;
-        let url = endpoint(RECENT_SPREADS);
-        let query_param = payload::RecentSpreadsInput{pair, since};
-        // Next, we have to attach the API Key header.
-        let req = self
-            .http
-            .request(method, url)
-            .query(&query_param)
-            .build()?;
-        let resp = self.http.execute(req)
-            .await?
-            .json::<payload::RecentSpreadsResponse>()
-            .await?;
-        Ok(resp)
-    }
 
     pub async fn open_orders(&self, trades: Option<bool>, user_ref: Option<u32>) -> Result<String, reqwest::Error> {
         let nonce = self.nonce();
@@ -172,6 +172,19 @@ impl Client {
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
         let resp = self.http.execute(req).await?.text().await?;
+        Ok(resp)
+    }
+
+    pub async fn debug_recent_spreads(&self, pair: String, since: Option<u64>) -> Result<String, reqwest::Error> {
+        let client = &self.http;
+        let req = RequestBuilder {
+            method: Method::GET,
+            url: endpoint(RECENT_SPREADS),
+            param_encoding: ParamEncoding::QueryEncoded,
+            params: Some(RecentSpreadsInput{pair, since}),
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp = req.debug(client).await?;
         Ok(resp)
     }
 
