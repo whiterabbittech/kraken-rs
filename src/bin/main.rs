@@ -12,10 +12,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = env::var("KRAKEN_API_KEY").unwrap();
     let secret_key = env::var("KRAKEN_PRIVATE_KEY").unwrap();
     let client = Client::new(api_key, secret_key);
-    let text = client.ticker(AssetPair::DotUsd).await?;
+    let _text = client.ticker(AssetPair::DotUsd).await?;
     let asset = "DOT".to_owned();
     // let text = client.assets().await?;
-    println!("{}", text);
+    // println!("{}", text);
     let system_time = client.server_time().await?;
     println!("System Time: {}", system_time);
     let system_status = client.system_status().await?;
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Account Balance: {}", account_balance);
     let trade_balance = client.trade_balance(Some(asset)).await?;
     println!("Trade Balance: {}", trade_balance);
-    // let recent_spreads = client.recent_spreads("XETHXXBT".to_owned(), None).await?;
-    // println!("Recent Spreads: {:#?}", recent_spreads.result.pair);
+    // let recent_spreads = client.recent_spreads("XBTUSD".to_owned(), None).await?;
+    // println!("Recent Spreads: {}", recent_spreads);
     Ok(())
 }
