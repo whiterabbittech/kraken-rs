@@ -9,6 +9,7 @@ pub const SYSTEM_STATUS: &'static str = concat!("https://api.kraken.com/0", "/pu
 pub const SYSTEM_TIME: &'static str = concat!("https://api.kraken.com/0", "/public/Time");
 pub const TICKER: &'static str = concat!("https://api.kraken.com/0", "/public/Ticker");
 pub const RECENT_SPREADS: &'static str = concat!("https://api.kraken.com/0", "/public/Spread");
+pub const ASSET_PAIRS: &'static str = concat!("https://api.kraken.com/0", "/public/AssetPairs");
 
 pub fn endpoint(name: &str) -> Url {
     Url::parse(name).unwrap()

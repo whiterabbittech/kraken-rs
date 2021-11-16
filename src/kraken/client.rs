@@ -1,5 +1,5 @@
-use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSET_INFO, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE};
-use crate::kraken::payload::{self, RecentSpreadsInput, RecentSpreadsResponse, AssetInfoInput, AssetInfoResponse};
+use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSET_INFO, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, ASSET_PAIRS};
+use crate::kraken::payload::{self, AssetPairsResponse, AssetPairsInput, AssetPairsInfo, RecentSpreadsInput, RecentSpreadsResponse, AssetInfoInput, AssetInfoResponse, SerializableAssetPairsInput};
 use crate::kraken::signature::get_kraken_signature;
 use crate::kraken::request_builder::{ParamEncoding, PrivacyLevel, RequestBuilder};
 use chrono::prelude::*;
@@ -99,6 +99,21 @@ impl Client {
             url: endpoint(RECENT_SPREADS),
             param_encoding: ParamEncoding::QueryEncoded,
             params: Some(RecentSpreadsInput{pair, since}),
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp = req.execute(client).await?;
+        Ok(resp)
+    }
+
+    pub async fn asset_pairs(&self, pairs: Vec<String>, info: Option<AssetPairsInfo>) -> Result<AssetPairsResponse, reqwest::Error> {
+        let client = &self.http;
+        let user_input = AssetPairsInput{pairs, info};
+        let serializable_input = SerializableAssetPairsInput::from(user_input);
+        let req = RequestBuilder {
+            method: Method::GET,
+            url: endpoint(ASSET_PAIRS),
+            param_encoding: ParamEncoding::QueryEncoded,
+            params: Some(serializable_input),
             privacy_level: PrivacyLevel::Public,
         };
         let resp = req.execute(client).await?;

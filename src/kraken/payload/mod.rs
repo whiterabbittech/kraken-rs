@@ -5,6 +5,7 @@ pub use server_time::ServerTimeResponse;
 pub use system_status::SystemStatusResponse;
 pub use recent_spreads::{RecentSpreadsInput, RecentSpreadsResponse};
 pub use asset_info::{AssetInfoInput, AssetInfoResponse};
+pub use asset_pairs::{AssetPairsInput, AssetPairsResponse, AssetPairsInfo, SerializableAssetPairsInput};
 
 mod account_balance;
 mod open_orders;
@@ -13,3 +14,4 @@ mod server_time;
 mod system_status;
 mod recent_spreads;
 mod asset_info;
+mod asset_pairs;
