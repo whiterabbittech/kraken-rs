@@ -10,6 +10,7 @@ jobs:
       - name: Install Stable Rust 
         uses: actions-rs/toolchain@v1.0.6
         with:
+            toolchain: stable
             components: rustfmt, clippy
       - name: Install Cargo Make
         uses: actions-rs/cargo@v1.0.1
