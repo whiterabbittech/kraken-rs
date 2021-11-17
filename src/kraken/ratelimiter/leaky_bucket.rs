@@ -1,6 +1,8 @@
-use std::time::Duration;
-use std::collections::HashMap;
+#![allow(dead_code)]
+
 use flume::{Receiver, TrySendError};
+use std::collections::HashMap;
+use std::time::Duration;
 
 /// A LeakyBucket refers to a strategy for rate limiting
 /// where a channel of a fixed size is created, and elements
@@ -20,17 +22,13 @@ impl LeakyBucket {
             loop {
                 std::thread::sleep(config.fill_rate);
                 let res = sender.try_send(());
-                if let Err(x) = res {
-                    if let TrySendError::Disconnected(_) = x {
-                        println!("Channel closed. Exiting.");
-                        break;
-                    }
+                if let Err(TrySendError::Disconnected(_)) = res {
+                    println!("Channel closed. Exiting.");
+                    break;
                 }
             }
         });
-        Self{
-            recv: receiver,
-        }
+        Self { recv: receiver }
     }
 
     pub async fn consume(&self) {
@@ -39,18 +37,27 @@ impl LeakyBucket {
 
     fn bucket_configuration(tier: AccountTier) -> BucketDescription {
         let configurations = HashMap::from([
-            (AccountTier::Starter, BucketDescription{
-                max_size: 15,
-                fill_rate: Duration::from_secs(3),
-            }),
-            (AccountTier::Intermediate, BucketDescription{
-                max_size: 20,
-                fill_rate: Duration::from_secs(2),
-            }),
-            (AccountTier::Pro, BucketDescription{
-                max_size: 20,
-                fill_rate: Duration::from_secs(1),
-            }),
+            (
+                AccountTier::Starter,
+                BucketDescription {
+                    max_size: 15,
+                    fill_rate: Duration::from_secs(3),
+                },
+            ),
+            (
+                AccountTier::Intermediate,
+                BucketDescription {
+                    max_size: 20,
+                    fill_rate: Duration::from_secs(2),
+                },
+            ),
+            (
+                AccountTier::Pro,
+                BucketDescription {
+                    max_size: 20,
+                    fill_rate: Duration::from_secs(1),
+                },
+            ),
         ]);
         let bucket = configurations.get(&tier).unwrap();
         *bucket

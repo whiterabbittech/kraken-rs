@@ -8,6 +8,6 @@ mod asset_pair;
 mod client;
 mod endpoints;
 mod payload;
+mod ratelimiter;
 mod request_builder;
 mod signature;
-mod ratelimiter;
