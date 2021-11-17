@@ -1,0 +1,58 @@
+[tasks.default]
+description = "Runs on `cargo make`"
+category = "Development"
+alias = "dev-test-flow"
+
+[tasks.dev-test-flow]
+description = "Development testing flow will first format the code, and than run cargo build and test"
+category = "Development"
+dependencies = [
+  "touch-lib",
+  "format-flow",
+  "clippy",
+  "pre-build",
+  "build",
+  "post-build",
+  "pre-docs",
+  "docs",
+  "post-docs",
+  "test-flow"
+]
+
+[tasks.touch-lib]
+command = "touch"
+args = ["src/lib.rs"]
+
+[tasks.clippy]
+args = ["clippy", "--", "-D", "warnings"]
+
+[tasks.format-stable]
+description = "Runs the cargo rustfmt plugin."
+category = "Development"
+condition = { channels = [ "stable", "beta" ] }
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt"]
+
+[tasks.wc]
+description = "Calculate the LoC in src."
+category = "Development"
+command = "tokei"
+args = ["./src"]
+
+[tasks.docker]
+description = "Build the Docker image"
+category = "Development"
+command = "docker"
+args = ["build", "-t", "kraken", "."]
+
+[tasks.cov]
+description = "Calculate test coverage"
+category = "Development"
+command = "docker"
+args = ["run", "--security-opt", "seccomp=unconfined", "-v", "${PWD}:/volume", "xd009642/tarpaulin"]
+
+[tasks.outdated]
+description = "Show out of date dependencies"
+command = "cargo"
+args = ["outdated", "--root-deps-only"]

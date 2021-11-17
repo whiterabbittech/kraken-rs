@@ -1,16 +1,16 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{Value};
-use std::fmt;
+use serde_json::Value;
 use std::collections::HashMap;
+use std::fmt;
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct RecentSpreadsInput {
     pub pair: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<u64>,
 }
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct RecentSpreadsResponse {
     pub error: Vec<String>,
     pub result: Option<RecentSpreadsResult>,
@@ -29,7 +29,7 @@ type RecentSpreadsResult = HashMap<String, Value>;
 
 impl fmt::Display for RecentSpreadsResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let val = if self.error.len() > 0 {
+        let val = if self.error.is_empty() {
             format!("{:?}", self.error)
         } else {
             format!("{:?}", self.result)

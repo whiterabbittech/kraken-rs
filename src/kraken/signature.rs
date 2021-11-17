@@ -1,7 +1,7 @@
-use ring::digest::{Context, Digest, SHA256};
-use ring::{hmac};
-use reqwest::Request;
 use data_encoding::BASE64;
+use reqwest::Request;
+use ring::digest::{Context, Digest, SHA256};
+use ring::hmac;
 
 pub struct SignatureInput {
     pub private_key: String,
@@ -32,7 +32,7 @@ impl SignatureInput {
     }
 
     fn take_sha(nonce: String, encoded_payload: String) -> Digest {
-         // • Create a new Context for taking the SHA.
+        // • Create a new Context for taking the SHA.
         let mut context = Context::new(&SHA256);
         // • Concat the nonce and POST data.
         let concat = nonce + &encoded_payload;
@@ -57,7 +57,7 @@ impl SignatureInput {
         let uri_bytes = uri_path.as_bytes();
         let hmac_input = &[uri_bytes, digest].concat();
         // • HMAC that concated value.
-        let tag = hmac::sign(&key, &hmac_input);
+        let tag = hmac::sign(&key, hmac_input);
         let tag_bytes = tag.as_ref();
         BASE64.encode(tag_bytes)
     }
@@ -68,8 +68,8 @@ pub fn get_kraken_signature(nonce: String, private_key: String, req: &Request) -
     let req_body = req.body().unwrap().as_bytes().unwrap().to_vec();
     let body_str = String::from_utf8(req_body).unwrap();
     // Here, we need to calculat the API-Sign
-    let signature = SignatureInput{
-        private_key: private_key,
+    let signature = SignatureInput {
+        private_key,
         nonce,
         encoded_payload: body_str,
         uri_path: path.to_owned(),
@@ -80,8 +80,8 @@ pub fn get_kraken_signature(nonce: String, private_key: String, req: &Request) -
 #[cfg(test)]
 mod test {
 
-    use pretty_assertions::assert_eq;
     use super::SignatureInput;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_signature() {

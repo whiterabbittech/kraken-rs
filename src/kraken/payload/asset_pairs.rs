@@ -14,9 +14,7 @@ impl From<AssetPairsInput> for SerializableAssetPairsInput {
             _ => Some(input.pairs.join(",")),
         };
 
-        Self {
-            info, pairs
-        }
+        Self { info, pairs }
     }
 }
 

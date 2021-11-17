@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct ServerTimeResponse {
     pub error: Vec<String>,
     pub result: ServerTimeResult,
@@ -13,9 +13,9 @@ impl fmt::Display for ServerTimeResponse {
     }
 }
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct ServerTimeResult {
-    #[serde(rename = "unixtime")] 
+    #[serde(rename = "unixtime")]
     pub unix_time: u64,
     pub rfc1123: String,
 }

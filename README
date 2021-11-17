@@ -1,0 +1,11 @@
+# How To
+
+# Development
+
+# Contributing
+
+# MSRV
+
+Because upgrading between Rust versions is so smooth, no effort has been
+made to maintain the MSRV (minimum supported Rust version). For that reason,
+this library runs on stable Rust only.
