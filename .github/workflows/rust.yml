@@ -15,7 +15,8 @@ jobs:
       - name: Install Cargo Make
         uses: actions-rs/cargo@v1.0.1
         with:
-          command: install cargo-make
+          command: install
+          args: cargo-make
       - name: Run Cargo Make
         uses: actions-rs/cargo@v1.0.1
         with:
