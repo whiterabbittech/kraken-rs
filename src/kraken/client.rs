@@ -1,11 +1,17 @@
-use crate::kraken::{endpoint, AssetPair, RECENT_SPREADS, OPEN_ORDERS, SYSTEM_TIME, SYSTEM_STATUS, ASSET_INFO, TICKER, ACCOUNT_BALANCE, TRADE_BALANCE, ASSET_PAIRS};
-use crate::kraken::payload::{self, AssetPairsResponse, AssetPairsInput, AssetPairsInfo, RecentSpreadsInput, RecentSpreadsResponse, AssetInfoInput, AssetInfoResponse, SerializableAssetPairsInput};
-use crate::kraken::signature::get_kraken_signature;
+use crate::kraken::payload::{
+    self, AssetInfoInput, AssetInfoResponse, AssetPairsInfo, AssetPairsInput, AssetPairsResponse,
+    RecentSpreadsInput, RecentSpreadsResponse, SerializableAssetPairsInput,
+};
 use crate::kraken::request_builder::{ParamEncoding, PrivacyLevel, RequestBuilder};
+use crate::kraken::signature::get_kraken_signature;
+use crate::kraken::{
+    endpoint, AssetPair, ACCOUNT_BALANCE, ASSET_INFO, ASSET_PAIRS, OPEN_ORDERS, RECENT_SPREADS,
+    SYSTEM_STATUS, SYSTEM_TIME, TICKER, TRADE_BALANCE,
+};
 use chrono::prelude::*;
-use std::time::Duration;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
 use reqwest::{Method, Request, Url};
+use std::time::Duration;
 use tower::service_fn;
 use tower::{Service, ServiceExt};
 
@@ -35,7 +41,7 @@ impl Client {
 
     pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
         let client = &self.http;
-        let req = RequestBuilder::<()>{
+        let req = RequestBuilder::<()> {
             method: Method::GET,
             url: endpoint(SYSTEM_TIME),
             params: None,
@@ -66,10 +72,10 @@ impl Client {
             method: Method::POST,
             url: endpoint(ACCOUNT_BALANCE),
             param_encoding: ParamEncoding::FormEncoded,
-            params: Some(payload::AccountBalanceInput{
+            params: Some(payload::AccountBalanceInput {
                 nonce: nonce.clone(),
             }),
-            privacy_level: PrivacyLevel::Private{
+            privacy_level: PrivacyLevel::Private {
                 nonce,
                 api_key: self.api_key.clone(),
                 private_key: self.private_key.clone(),
@@ -79,35 +85,47 @@ impl Client {
         Ok(resp)
     }
 
-    pub async fn asset_info(&self, asset: Option<String>, asset_class: Option<String>) -> Result<AssetInfoResponse, reqwest::Error> {
+    pub async fn asset_info(
+        &self,
+        asset: Option<String>,
+        asset_class: Option<String>,
+    ) -> Result<AssetInfoResponse, reqwest::Error> {
         let client = &self.http;
         let req = RequestBuilder {
             method: Method::GET,
             url: endpoint(ASSET_INFO),
             param_encoding: ParamEncoding::FormEncoded,
-            params: Some(AssetInfoInput{asset, asset_class}),
+            params: Some(AssetInfoInput { asset, asset_class }),
             privacy_level: PrivacyLevel::Public,
         };
         let resp: AssetInfoResponse = req.execute(client).await?;
         Ok(resp)
     }
 
-    pub async fn recent_spreads(&self, pair: String, since: Option<u64>) -> Result<RecentSpreadsResponse, reqwest::Error> {
+    pub async fn recent_spreads(
+        &self,
+        pair: String,
+        since: Option<u64>,
+    ) -> Result<RecentSpreadsResponse, reqwest::Error> {
         let client = &self.http;
         let req = RequestBuilder {
             method: Method::GET,
             url: endpoint(RECENT_SPREADS),
             param_encoding: ParamEncoding::QueryEncoded,
-            params: Some(RecentSpreadsInput{pair, since}),
+            params: Some(RecentSpreadsInput { pair, since }),
             privacy_level: PrivacyLevel::Public,
         };
         let resp = req.execute(client).await?;
         Ok(resp)
     }
 
-    pub async fn asset_pairs(&self, pairs: Vec<String>, info: Option<AssetPairsInfo>) -> Result<AssetPairsResponse, reqwest::Error> {
+    pub async fn asset_pairs(
+        &self,
+        pairs: Vec<String>,
+        info: Option<AssetPairsInfo>,
+    ) -> Result<AssetPairsResponse, reqwest::Error> {
         let client = &self.http;
-        let user_input = AssetPairsInput{pairs, info};
+        let user_input = AssetPairsInput { pairs, info };
         let serializable_input = SerializableAssetPairsInput::from(user_input);
         let req = RequestBuilder {
             method: Method::GET,
@@ -120,18 +138,22 @@ impl Client {
         Ok(resp)
     }
 
-///////////////////////////////////////////////////////////////////////////
-// Everything under this line does not strongly type their responses. /////
-///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    // Everything under this line does not strongly type their responses. /////
+    ///////////////////////////////////////////////////////////////////////////
 
-    pub async fn open_orders(&self, trades: Option<bool>, user_ref: Option<u32>) -> Result<String, reqwest::Error> {
+    pub async fn open_orders(
+        &self,
+        trades: Option<bool>,
+        user_ref: Option<u32>,
+    ) -> Result<String, reqwest::Error> {
         let nonce = self.nonce();
         let method = Method::POST;
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(OPEN_ORDERS);
         let private_key = self.private_key.clone();
-        let form_param = payload::OpenOrdersInput{
+        let form_param = payload::OpenOrdersInput {
             nonce: nonce.clone(),
             trades,
             user_ref,
@@ -163,14 +185,14 @@ impl Client {
         Ok(resp)
     }
 
-    pub async fn trade_balance(&self, asset: Option<String>) ->  Result<String, reqwest::Error> {
+    pub async fn trade_balance(&self, asset: Option<String>) -> Result<String, reqwest::Error> {
         let nonce = self.nonce();
         let method = Method::POST;
         let api_key = &self.api_key;
         let content_type = "application/x-www-form-urlencoded; charset=utf-8";
         let url = endpoint(TRADE_BALANCE);
         let private_key = self.private_key.clone();
-        let form_param = payload::TradeBalanceInput{
+        let form_param = payload::TradeBalanceInput {
             nonce: nonce.clone(),
             asset,
         };
@@ -190,13 +212,17 @@ impl Client {
         Ok(resp)
     }
 
-    pub async fn debug_recent_spreads(&self, pair: String, since: Option<u64>) -> Result<String, reqwest::Error> {
+    pub async fn debug_recent_spreads(
+        &self,
+        pair: String,
+        since: Option<u64>,
+    ) -> Result<String, reqwest::Error> {
         let client = &self.http;
         let req = RequestBuilder {
             method: Method::GET,
             url: endpoint(RECENT_SPREADS),
             param_encoding: ParamEncoding::QueryEncoded,
-            params: Some(RecentSpreadsInput{pair, since}),
+            params: Some(RecentSpreadsInput { pair, since }),
             privacy_level: PrivacyLevel::Public,
         };
         let resp = req.debug(client).await?;

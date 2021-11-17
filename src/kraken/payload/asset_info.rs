@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct AssetInfoInput {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub asset: Option<String>,
@@ -10,7 +10,7 @@ pub struct AssetInfoInput {
     pub asset_class: Option<String>,
 }
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct AssetInfoResponse {
     error: Vec<String>,
     result: HashMap<String, AssetInfo>,
@@ -28,7 +28,7 @@ pub struct AssetInfo {
 
 impl fmt::Display for AssetInfoResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let val = if self.error.len() > 0 {
+        let val = if self.error.is_empty() {
             format!("{:?}", self.error)
         } else {
             format!("{:?}", self.result)

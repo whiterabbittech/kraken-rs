@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct SystemStatusResponse {
     pub result: SystemStatusResult,
     pub error: Vec<String>,
@@ -9,7 +9,7 @@ pub struct SystemStatusResponse {
 
 impl fmt::Display for SystemStatusResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.error.len() == 0 {
+        if self.error.is_empty() {
             write!(f, "{}", &self.result)
         } else {
             write!(f, "{:#?}", &self.error)
@@ -17,7 +17,7 @@ impl fmt::Display for SystemStatusResponse {
     }
 }
 
-#[derive(Serialize, Deserialize,)]
+#[derive(Serialize, Deserialize)]
 pub struct SystemStatusResult {
     pub timestamp: String,
     pub status: SystemStatusEnum,
@@ -29,8 +29,8 @@ impl fmt::Display for SystemStatusResult {
     }
 }
 
-#[derive(Serialize, Deserialize,)]
-#[serde(rename_all = "snake_case")] 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum SystemStatusEnum {
     Online,
     Maintenance,
