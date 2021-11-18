@@ -7,6 +7,7 @@ alias = "dev-test-flow"
 description = "Development testing flow will first format the code, and than run cargo build and test"
 category = "Development"
 dependencies = [
+  "check-sort",
   "touch-lib",
   "format-flow",
   "clippy",
@@ -51,6 +52,18 @@ description = "Calculate test coverage"
 category = "Development"
 command = "docker"
 args = ["run", "--security-opt", "seccomp=unconfined", "-v", "${PWD}:/volume", "xd009642/tarpaulin"]
+
+[tasks.check-sort]
+description = "Assert that Cargo.toml is sorted."
+category = "Development"
+command = "cargo"
+args = ["sort", "--check"]
+
+[tasks.sort]
+description = "Sort Cargo.toml"
+category = "Development"
+command = "cargo"
+args = ["sort"]
 
 [tasks.outdated]
 description = "Show out of date dependencies"

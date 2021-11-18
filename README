@@ -2,6 +2,11 @@
 
 # Development
 
+The following tools are required to successfully develop Kraken-rs:
+
+* cargo-make
+* cargo-sort
+
 # Contributing
 
 # MSRV
