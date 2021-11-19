@@ -3,6 +3,7 @@ use crate::kraken::payload::{
     RecentSpreadsInput, RecentSpreadsResponse, SerializableAssetPairsInput,
 };
 use crate::kraken::request_builder::{ParamEncoding, PrivacyLevel, RequestBuilder};
+use crate::kraken::env::KrakenCredentials;
 use crate::kraken::signature::get_kraken_signature;
 use crate::kraken::{
     endpoint, AssetPair, ACCOUNT_BALANCE, ASSET_INFO, ASSET_PAIRS, OPEN_ORDERS, RECENT_SPREADS,
@@ -19,14 +20,14 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(api_key: String, private_key: String) -> Self {
+    pub fn new(creds: KrakenCredentials) -> Self {
         // First, create a new reqwest client.
         let client = reqwest::Client::new();
         // Set the API Key and the Private Key.
         Self {
             http: client,
-            api_key,
-            private_key,
+            api_key: creds.api_key().to_string(),
+            private_key: creds.private_key().to_string(),
         }
     }
 

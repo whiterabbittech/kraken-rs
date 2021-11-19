@@ -1,6 +1,5 @@
-use kraken_http::{AssetPair, Client};
+use kraken_http::{AssetPair, Client, KrakenCredentials};
 use serde::Deserialize;
-use std::env;
 
 #[derive(Deserialize, Debug)]
 struct Ip {
@@ -9,9 +8,8 @@ struct Ip {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let api_key = env::var("KRAKEN_API_KEY").unwrap();
-    let secret_key = env::var("KRAKEN_PRIVATE_KEY").unwrap();
-    let client = Client::new(api_key, secret_key);
+    let creds = KrakenCredentials::new_from_env().unwrap();
+    let client = Client::new(creds);
     let _text = client.ticker(AssetPair::DotUsd).await?;
     let asset = "DOT".to_owned();
     // let text = client.assets().await?;
