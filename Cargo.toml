@@ -1,5 +1,5 @@
 [package]
-name = "kraken"
+name = "kraken-http"
 version = "0.1.0"
 authors = ["Felix Bracken <crates@whiterabbit.llc>"]
 edition = "2021"
@@ -7,6 +7,7 @@ license-file = "LICENSE"
 keywords = ["kraken", "cryptocurrency", "crypto", "API", "client-library"]
 categories = ["api-bindings", "cryptography::cryptocurrencies", "web-programming::http-client"]
 description = "Asynchronous HTTP API bindings for the Kraken cryptocurrency exchange."
+repository = "https://github.com/whiterabbittech/kraken-rs"
 exclude = ["Makefile.toml"]
 
 [dependencies]
@@ -18,8 +19,7 @@ reqwest = { version = "0.11", features = ["json"] }
 ring = "0.16.20"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tokio = { version = "1", features = ["full"] }
-tower = { version = "0.4.7", features = ["full"] }
+tokio = { version = "1.8", features = ["full"] }
 url = "2.2"
 
 [dev-dependencies]

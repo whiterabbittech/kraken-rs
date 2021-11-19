@@ -10,10 +10,7 @@ use crate::kraken::{
 };
 use chrono::prelude::*;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
-use reqwest::{Method, Request, Url};
-use std::time::Duration;
-use tower::service_fn;
-use tower::{Service, ServiceExt};
+use reqwest::Method;
 
 pub struct Client {
     http: reqwest::Client,
@@ -227,21 +224,5 @@ impl Client {
         };
         let resp = req.debug(client).await?;
         Ok(resp)
-    }
-
-    pub async fn make_request(&self) -> Result<(), Box<dyn std::error::Error>> {
-        // Clone the current HTTP client.
-        let client = self.http.clone();
-        // Build the Tower service.
-        let mut svc = tower::ServiceBuilder::new()
-            .rate_limit(100, Duration::new(10, 0)) // 100 requests every 10 seconds
-            .service(service_fn(move |req| client.execute(req)));
-        // Make the request which you're about to feed to
-        // the Tower service.
-        let req = Request::new(Method::GET, Url::parse("https://httpbin.org/ip")?);
-        // Send the request and await the response.
-        let resp = svc.ready().await?.call(req).await?.text().await?;
-        println!("{:#?}", resp);
-        Ok(())
     }
 }
