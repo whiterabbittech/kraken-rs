@@ -1,5 +1,5 @@
 [package]
-name = "kraken-rs"
+name = "kraken-http"
 version = "0.1.0"
 authors = ["Felix Bracken <crates@whiterabbit.llc>"]
 edition = "2021"
@@ -7,6 +7,7 @@ license-file = "LICENSE"
 keywords = ["kraken", "cryptocurrency", "crypto", "API", "client-library"]
 categories = ["api-bindings", "cryptography::cryptocurrencies", "web-programming::http-client"]
 description = "Asynchronous HTTP API bindings for the Kraken cryptocurrency exchange."
+repository = "https://github.com/whiterabbittech/kraken-rs"
 exclude = ["Makefile.toml"]
 
 [dependencies]
