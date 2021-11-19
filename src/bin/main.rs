@@ -1,4 +1,4 @@
-use kraken::{AssetPair, Client};
+use kraken_http::{AssetPair, Client};
 use serde::Deserialize;
 use std::env;
 
