@@ -1,5 +1,5 @@
 [package]
-name = "kraken"
+name = "kraken-rs"
 version = "0.1.0"
 authors = ["Felix Bracken <crates@whiterabbit.llc>"]
 edition = "2021"
