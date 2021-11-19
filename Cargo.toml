@@ -6,6 +6,7 @@ edition = "2021"
 license-file = "LICENSE"
 keywords = ["kraken", "cryptocurrency", "crypto", "API", "client-library"]
 categories = ["api-bindings", "cryptography::cryptocurrencies", "web-programming::http-client"]
+description = "Asynchronous HTTP API bindings for the Kraken cryptocurrency exchange."
 exclude = ["Makefile.toml"]
 
 [dependencies]
