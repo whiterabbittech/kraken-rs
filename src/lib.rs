@@ -1,2 +1,2 @@
-pub use self::kraken::{KrakenCredentials, endpoint, AssetPair, Client};
+pub use self::kraken::{endpoint, AssetPair, Client, KrakenCredentials};
 mod kraken;

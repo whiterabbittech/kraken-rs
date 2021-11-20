@@ -14,7 +14,10 @@ impl KrakenCredentials {
     }
 
     pub fn new(api_key: String, private_key: String) -> Self {
-        Self {api_key, private_key}
+        Self {
+            api_key,
+            private_key,
+        }
     }
 
     pub fn api_key(&self) -> &String {

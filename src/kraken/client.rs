@@ -1,9 +1,10 @@
+use crate::kraken::env::KrakenCredentials;
 use crate::kraken::payload::{
     self, AssetInfoInput, AssetInfoResponse, AssetPairsInfo, AssetPairsInput, AssetPairsResponse,
-    RecentSpreadsInput, RecentSpreadsResponse, SerializableAssetPairsInput,
+    RawRecentSpreadsResponse, RecentSpreadsInput, RecentSpreadsResponse,
+    SerializableAssetPairsInput,
 };
 use crate::kraken::request_builder::{ParamEncoding, PrivacyLevel, RequestBuilder};
-use crate::kraken::env::KrakenCredentials;
 use crate::kraken::signature::get_kraken_signature;
 use crate::kraken::{
     endpoint, AssetPair, ACCOUNT_BALANCE, ASSET_INFO, ASSET_PAIRS, OPEN_ORDERS, RECENT_SPREADS,
@@ -113,8 +114,8 @@ impl Client {
             params: Some(RecentSpreadsInput { pair, since }),
             privacy_level: PrivacyLevel::Public,
         };
-        let resp = req.execute(client).await?;
-        Ok(resp)
+        let resp: RawRecentSpreadsResponse = req.execute(client).await?;
+        Ok(RecentSpreadsResponse::from(resp))
     }
 
     pub async fn asset_pairs(

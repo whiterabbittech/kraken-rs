@@ -17,7 +17,7 @@ type AccountBalanceResult = HashMap<String, String>;
 
 impl fmt::Display for AccountBalanceResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let val = if self.error.is_empty() {
+        let val = if !self.error.is_empty() {
             format!("{:?}", self.error)
         } else {
             format!("{:?}", self.result)

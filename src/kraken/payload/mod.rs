@@ -4,7 +4,9 @@ pub use asset_pairs::{
     AssetPairsInfo, AssetPairsInput, AssetPairsResponse, SerializableAssetPairsInput,
 };
 pub use open_orders::OpenOrdersInput;
-pub use recent_spreads::{RecentSpreadsInput, RecentSpreadsResponse};
+pub use recent_spreads::{
+    RawRecentSpreadsResponse, RecentSpreadsInput, RecentSpreadsResponse, Spread,
+};
 pub use server_time::ServerTimeResponse;
 pub use system_status::SystemStatusResponse;
 pub use trade_balance::TradeBalanceInput;
