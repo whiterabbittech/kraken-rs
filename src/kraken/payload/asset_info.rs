@@ -28,7 +28,7 @@ pub struct AssetInfo {
 
 impl fmt::Display for AssetInfoResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let val = if self.error.is_empty() {
+        let val = if !self.error.is_empty() {
             format!("{:?}", self.error)
         } else {
             format!("{:?}", self.result)

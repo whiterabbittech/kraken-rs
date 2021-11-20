@@ -9,10 +9,10 @@ pub struct SystemStatusResponse {
 
 impl fmt::Display for SystemStatusResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.error.is_empty() {
-            write!(f, "{}", &self.result)
-        } else {
+        if !self.error.is_empty() {
             write!(f, "{:#?}", &self.error)
+        } else {
+            write!(f, "{}", &self.result)
         }
     }
 }
