@@ -1,2 +1,2 @@
-pub use self::kraken::{endpoint, AssetPair, Client, KrakenCredentials, AccountTier};
+pub use self::kraken::{endpoint, AccountTier, AssetPair, Client, KrakenCredentials};
 mod kraken;

@@ -1,5 +1,4 @@
-use kraken_http::{AssetPair, Client, KrakenCredentials, AccountTier};
-use serde::Deserialize;
+use kraken_http::{AccountTier, AssetPair, Client, KrakenCredentials};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

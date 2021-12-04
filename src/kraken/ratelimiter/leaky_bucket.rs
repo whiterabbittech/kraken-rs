@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 
+use crate::kraken::AccountTier;
 use flume::{Receiver, TrySendError};
 use std::collections::HashMap;
 use std::time::Duration;
-use crate::kraken::AccountTier;
 
 /// A LeakyBucket refers to a strategy for rate limiting
 /// where a channel of a fixed size is created, and elements
@@ -37,7 +37,7 @@ impl LeakyBucket {
     }
 
     pub async fn use_rate_limit(&self, count: usize) {
-        for i in 0..count {
+        for _ in 0..count {
             self.consume().await;
         }
     }
