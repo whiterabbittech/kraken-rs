@@ -1,6 +1,8 @@
 const KRAKEN_API_KEY: &str = "KRAKEN_API_KEY";
 const KRAKEN_PRIVATE_KEY: &str = "KRAKEN_PRIVATE_KEY";
 
+/// KrakenCredentials are the login credentials used by this library
+/// to authenticate requests.
 pub struct KrakenCredentials {
     api_key: String,
     private_key: String,

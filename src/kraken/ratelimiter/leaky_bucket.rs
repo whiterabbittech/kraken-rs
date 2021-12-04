@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::kraken::AccountTier;
 use flume::{Receiver, TrySendError};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -35,6 +36,12 @@ impl LeakyBucket {
         self.recv.recv_async().await.unwrap();
     }
 
+    pub async fn use_rate_limit(&self, count: usize) {
+        for _ in 0..count {
+            self.consume().await;
+        }
+    }
+
     fn bucket_configuration(tier: AccountTier) -> BucketDescription {
         let configurations = HashMap::from([
             (
@@ -62,13 +69,6 @@ impl LeakyBucket {
         let bucket = configurations.get(&tier).unwrap();
         *bucket
     }
-}
-
-#[derive(Hash, Eq, PartialEq, Clone, Copy)]
-pub enum AccountTier {
-    Starter,
-    Intermediate,
-    Pro,
 }
 
 #[derive(Clone, Copy)]

@@ -4,8 +4,10 @@ use crate::kraken::payload::{
     RawRecentSpreadsResponse, RecentSpreadsInput, RecentSpreadsResponse,
     SerializableAssetPairsInput,
 };
+use crate::kraken::ratelimiter::LeakyBucket;
 use crate::kraken::request_builder::{ParamEncoding, PrivacyLevel, RequestBuilder};
 use crate::kraken::signature::get_kraken_signature;
+use crate::kraken::AccountTier;
 use crate::kraken::{
     endpoint, AssetPair, ACCOUNT_BALANCE, ASSET_INFO, ASSET_PAIRS, OPEN_ORDERS, RECENT_SPREADS,
     SYSTEM_STATUS, SYSTEM_TIME, TICKER, TRADE_BALANCE,
@@ -18,10 +20,11 @@ pub struct Client {
     http: reqwest::Client,
     api_key: String,
     private_key: String,
+    rate_limiter: LeakyBucket,
 }
 
 impl Client {
-    pub fn new(creds: KrakenCredentials) -> Self {
+    pub fn new(creds: KrakenCredentials, tier: AccountTier) -> Self {
         // First, create a new reqwest client.
         let client = reqwest::Client::new();
         // Set the API Key and the Private Key.
@@ -29,7 +32,12 @@ impl Client {
             http: client,
             api_key: creds.api_key().to_string(),
             private_key: creds.private_key().to_string(),
+            rate_limiter: LeakyBucket::new(tier),
         }
+    }
+
+    async fn use_rate_limit(&self, count: usize) {
+        self.rate_limiter.use_rate_limit(count).await
     }
 
     fn nonce(&self) -> String {
@@ -39,6 +47,7 @@ impl Client {
     }
 
     pub async fn server_time(&self) -> Result<payload::ServerTimeResponse, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let client = &self.http;
         let req = RequestBuilder::<()> {
             method: Method::GET,
@@ -52,6 +61,7 @@ impl Client {
     }
 
     pub async fn system_status(&self) -> Result<payload::SystemStatusResponse, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let client = &self.http;
         let req = RequestBuilder::<()> {
             method: Method::GET,
@@ -65,6 +75,7 @@ impl Client {
     }
 
     pub async fn account_balance(&self) -> Result<payload::AccountBalanceResponse, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let nonce = self.nonce();
         let client = &self.http;
         let req = RequestBuilder {
@@ -89,6 +100,7 @@ impl Client {
         asset: Option<String>,
         asset_class: Option<String>,
     ) -> Result<AssetInfoResponse, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let client = &self.http;
         let req = RequestBuilder {
             method: Method::GET,
@@ -106,6 +118,7 @@ impl Client {
         pair: String,
         since: Option<u64>,
     ) -> Result<RecentSpreadsResponse, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let client = &self.http;
         let req = RequestBuilder {
             method: Method::GET,
@@ -123,6 +136,7 @@ impl Client {
         pairs: Vec<String>,
         info: Option<AssetPairsInfo>,
     ) -> Result<AssetPairsResponse, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let client = &self.http;
         let user_input = AssetPairsInput { pairs, info };
         let serializable_input = SerializableAssetPairsInput::from(user_input);
@@ -146,6 +160,7 @@ impl Client {
         trades: Option<bool>,
         user_ref: Option<u32>,
     ) -> Result<String, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let nonce = self.nonce();
         let method = Method::POST;
         let api_key = &self.api_key;
@@ -174,6 +189,7 @@ impl Client {
     }
 
     pub async fn ticker(&self, asset: AssetPair) -> Result<String, reqwest::Error> {
+        self.use_rate_limit(1).await;
         // Clone the current HTTP client.
         let method = Method::GET;
         let url = endpoint(TICKER);
@@ -185,6 +201,7 @@ impl Client {
     }
 
     pub async fn trade_balance(&self, asset: Option<String>) -> Result<String, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let nonce = self.nonce();
         let method = Method::POST;
         let api_key = &self.api_key;
@@ -216,6 +233,7 @@ impl Client {
         pair: String,
         since: Option<u64>,
     ) -> Result<String, reqwest::Error> {
+        self.use_rate_limit(1).await;
         let client = &self.http;
         let req = RequestBuilder {
             method: Method::GET,
