@@ -1,5 +1,5 @@
-use bigdecimal::BigDecimal;
 use super::{AskInfo, BidInfo, LastTradeInfo, VolumeInfo};
+use bigdecimal::BigDecimal;
 
 pub struct TickerInfo {
     pub ask: AskInfo,
@@ -14,4 +14,3 @@ pub struct TickerInfo {
     pub daily_volume_weighted_avg_price: BigDecimal,
     pub rolling_24h_volume_weighted_avg_price: BigDecimal,
 }
-

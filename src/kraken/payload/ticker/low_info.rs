@@ -1,1 +1,1 @@
-pub struct LowInfo{}
+pub struct LowInfo {}

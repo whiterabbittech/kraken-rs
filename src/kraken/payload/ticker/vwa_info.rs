@@ -1,1 +1,1 @@
-pub struct VWAInfo{}
+pub struct VWAInfo {}
