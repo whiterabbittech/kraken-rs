@@ -19,3 +19,4 @@ mod recent_spreads;
 mod server_time;
 mod system_status;
 mod trade_balance;
+mod ticker;
