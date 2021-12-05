@@ -21,7 +21,7 @@ impl TryFrom<Value> for AskInfo {
     fn try_from(val: Value) -> Result<Self, Self::Error> {
         // First, remove the map element from its Value wrapper.
         match val.as_object() {
-            None => return Err(AskError::new("Value is not an Object")),
+            None => Err(AskError::new("Value is not an Object")),
             Some(obj) => try_from_map(obj),
         }
     }
@@ -31,7 +31,7 @@ fn try_from_map(obj: &Map<String, Value>) -> Result<AskInfo, AskError> {
     // Expected only one key in the map: "a"
     match obj.get("a") {
         Some(array) => try_from_array(array),
-        None => return Err(AskError::new("Object has no key \"a\"")),
+        None => Err(AskError::new("Object has no key \"a\"")),
     }
 }
 
@@ -65,7 +65,7 @@ fn unpack_unwrapped_decimal(val: &Value) -> Result<BigDecimal, AskError> {
     }
 }
 
-fn unpack_decimal_str(val: &String) -> Result<BigDecimal, AskError> {
+fn unpack_decimal_str(val: &str) -> Result<BigDecimal, AskError> {
     let parsed_decimal = BigDecimal::from_str(val);
     let err_transformer =
         |err| AskError::new(format!("Value provided is not a big decimal: {}", err));
@@ -83,5 +83,56 @@ impl AskError {
 impl fmt::Display for AskError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Error parsing AskInfo: {}", self.0)
+    }
+}
+
+impl fmt::Debug for AskError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AskInfo;
+    use pretty_assertions::assert_eq;
+    use serde_json::json;
+    use std::convert::TryFrom;
+
+    #[test]
+    fn parses_valid_json() {
+        let input = json!(
+            {
+                "a": ["52609.60000", "1", "1.000"]
+            }
+        );
+        let ask = AskInfo::try_from(input);
+        assert_eq!(ask.is_ok(), true);
+        let ask_info = ask.unwrap();
+        assert_eq!(ask_info.ask.to_string(), "52609.60000");
+        assert_eq!(ask_info.whole_lot_volume.to_string(), "1");
+        assert_eq!(ask_info.lot_volume.to_string(), "1.000");
+    }
+
+    #[test]
+    fn parses_invalid_json() {
+        let input = json!(
+            {
+                "a": ["52609.60000", true, "1.000"]
+            }
+        );
+        let ask = AskInfo::try_from(input);
+        assert_eq!(ask.is_err(), true);
+    }
+
+    #[test]
+    fn parses_invalid_json2() {
+        let input = json!(
+            {
+                "b": ["52609.60000", "1", "1.000"]
+            }
+        );
+        let ask = AskInfo::try_from(input);
+        assert_eq!(ask.is_err(), true);
     }
 }
