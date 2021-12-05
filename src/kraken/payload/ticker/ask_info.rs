@@ -1,13 +1,7 @@
 use bigdecimal::BigDecimal;
-use serde_json::map::Map;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use std::fmt;
 use std::str::FromStr;
-
-/// TODO: Add a couple unit tests for TryFrom.
-/// • Test the happy case.
-/// • Test the each of the bad cases too.
-/// • Install Pretty Assertions.
 
 pub struct AskInfo {
     pub ask: BigDecimal,
@@ -15,10 +9,10 @@ pub struct AskInfo {
     pub lot_volume: BigDecimal,
 }
 
-impl TryFrom<Value> for AskInfo {
+impl TryFrom<&Value> for AskInfo {
     type Error = AskError;
 
-    fn try_from(val: Value) -> Result<Self, Self::Error> {
+    fn try_from(val: &Value) -> Result<Self, Self::Error> {
         // First, remove the map element from its Value wrapper.
         match val.as_object() {
             None => Err(AskError::new("Value is not an Object")),
@@ -106,7 +100,7 @@ mod tests {
                 "a": ["52609.60000", "1", "1.000"]
             }
         );
-        let ask = AskInfo::try_from(input);
+        let ask = AskInfo::try_from(&input);
         assert_eq!(ask.is_ok(), true);
         let ask_info = ask.unwrap();
         assert_eq!(ask_info.ask.to_string(), "52609.60000");
@@ -121,7 +115,7 @@ mod tests {
                 "a": ["52609.60000", true, "1.000"]
             }
         );
-        let ask = AskInfo::try_from(input);
+        let ask = AskInfo::try_from(&input);
         assert_eq!(ask.is_err(), true);
     }
 
@@ -132,7 +126,7 @@ mod tests {
                 "b": ["52609.60000", "1", "1.000"]
             }
         );
-        let ask = AskInfo::try_from(input);
+        let ask = AskInfo::try_from(&input);
         assert_eq!(ask.is_err(), true);
     }
 }
