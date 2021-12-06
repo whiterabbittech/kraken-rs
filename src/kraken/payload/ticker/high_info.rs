@@ -1,7 +1,6 @@
+use super::json_helpers::{HighError, unpack_decimal};
 use bigdecimal::BigDecimal;
 use serde_json::{Map, Value};
-use std::fmt;
-use std::str::FromStr;
 
 pub struct HighInfo {
     pub today: BigDecimal,
@@ -15,7 +14,7 @@ impl TryFrom<&Value> for HighInfo {
         // first, remove the map element from its Value wrapper.
         match val.as_object() {
             Some(obj) => try_from_map(obj),
-            None => Err(HighError::new("Value is not an Object")),
+            None => Err(HighError::try_from_error()),
         }
     }
 }
@@ -24,7 +23,7 @@ fn try_from_map(obj: &Map<String, Value>) -> Result<HighInfo, HighError> {
     // Expected only one key in the map: "h"
     match obj.get("h") {
         Some(array) => try_from_array(array),
-        None => Err(HighError::new("Object has no key \"h\"")),
+        None => Err(HighError::no_key_error()),
     }
 }
 
@@ -39,48 +38,6 @@ fn try_from_array(array: &Value) -> Result<HighInfo, HighError> {
         today: unpack_decimal(today_val)?,
         rolling_24h: unpack_decimal(rolling_24h_val)?,
     })
-}
-
-fn unpack_decimal(val: Option<&Value>) -> Result<BigDecimal, HighError> {
-    if val.is_none() {
-        let err = HighError::new("Value is none.");
-        return Err(err);
-    }
-    unpack_unwrapped_decimal(val.unwrap())
-}
-
-fn unpack_unwrapped_decimal(val: &Value) -> Result<BigDecimal, HighError> {
-    match val {
-        Value::String(decimal_str) => unpack_decimal_str(decimal_str),
-        _ => Err(HighError::new("Value is not a String.")),
-    }
-}
-
-fn unpack_decimal_str(val: &str) -> Result<BigDecimal, HighError> {
-    let parsed_decimal = BigDecimal::from_str(val);
-    let err_transformer =
-        |err| HighError::new(format!("Value provided is not a big decimal: {}", err));
-    parsed_decimal.map_err(err_transformer)
-}
-
-pub struct HighError(String);
-
-impl HighError {
-    pub fn new<T: Into<String>>(message: T) -> Self {
-        Self(message.into())
-    }
-}
-
-impl fmt::Display for HighError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Error parsing HighInfo: {}", self.0)
-    }
-}
-
-impl fmt::Debug for HighError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
-    }
 }
 
 #[cfg(test)]

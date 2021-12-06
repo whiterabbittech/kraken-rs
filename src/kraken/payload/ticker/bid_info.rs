@@ -1,8 +1,6 @@
 use bigdecimal::BigDecimal;
-use super::json_helpers::{BidError};
+use super::json_helpers::{BidError, unpack_decimal};
 use serde_json::{Map, Value};
-use std::fmt;
-use std::str::FromStr;
 
 pub struct BidInfo {
     pub bid: BigDecimal,
@@ -41,25 +39,6 @@ fn try_from_array(array: &Value) -> Result<BidInfo, BidError> {
         whole_lot_volume: unpack_decimal(whole_volume_val)?,
         lot_volume: unpack_decimal(lot_volume_val)?,
     })
-}
-
-fn unpack_decimal(val: Option<&Value>) -> Result<BigDecimal, BidError> {
-    match val {
-        Some(v) => unpack_unwrapped_decimal(v),
-        None => Err(BidError::none_value_error()),
-    }
-}
-
-fn unpack_unwrapped_decimal(val: &Value) -> Result<BigDecimal, BidError> {
-    match val {
-        Value::String(decimal_str) => unpack_decimal_str(decimal_str),
-        _ => Err(BidError::not_a_string_error()),
-    }
-}
-
-fn unpack_decimal_str(val: &str) -> Result<BigDecimal, BidError> {
-    let parsed_decimal = BigDecimal::from_str(val);
-    parsed_decimal.map_err(|_| BidError::not_a_float_error())
 }
 
 #[cfg(test)]

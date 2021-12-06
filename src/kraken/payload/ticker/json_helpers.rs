@@ -1,5 +1,8 @@
 use std::fmt;
 use std::marker::PhantomData;
+use bigdecimal::BigDecimal;
+use std::str::FromStr;
+use serde_json::Value;
 
 pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;
@@ -185,4 +188,23 @@ impl ErrorMetadata for HighInfoMetadata {
     fn not_a_float_wrapper() -> &'static str {
         Self::wrapper()
     }
+}
+
+pub fn unpack_decimal<T: ErrorMetadata>(val: Option<&Value>) -> Result<BigDecimal, ParseError<T>> {
+    match val {
+        Some(v) => unpack_unwrapped_decimal(v),
+        None => Err(ParseError::<T>::none_value_error()),
+    }
+}
+
+fn unpack_unwrapped_decimal<T: ErrorMetadata>(val: &Value) -> Result<BigDecimal, ParseError<T>> {
+    match val {
+        Value::String(decimal_str) => unpack_decimal_str(decimal_str),
+        _ => Err(ParseError::<T>::not_a_string_error()),
+    }
+}
+
+fn unpack_decimal_str<T: ErrorMetadata>(val: &str) -> Result<BigDecimal, ParseError<T>> {
+    let parsed_decimal = BigDecimal::from_str(val);
+    parsed_decimal.map_err(|_| ParseError::<T>::not_a_float_error())
 }
