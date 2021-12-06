@@ -7,6 +7,7 @@ use serde_json::Value;
 pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;
 pub type HighError = ParseError<HighInfoMetadata>;
+pub type LowError = ParseError<LowInfoMetadata>;
 
 pub enum ParseError<T: ErrorMetadata> {
     TryFrom(PhantomData<T>),
@@ -109,6 +110,14 @@ impl HighInfoMetadata {
     }
 }
 
+pub struct LowInfoMetadata {}
+
+impl LowInfoMetadata {
+    fn wrapper() -> &'static str {
+        "Error Parsing LowInfo"
+    }
+}
+
 impl ErrorMetadata for AskInfoMetadata {
     // Wrapper called when try_from failed to receive a JSON Object.
     fn try_failure_wrapper() -> &'static str {
@@ -175,6 +184,33 @@ impl ErrorMetadata for HighInfoMetadata {
     // Called to get the key name when the key hasn't been found.
     fn on_no_key() -> &'static str {
         "h"
+    }
+    // Wrapper called when the array doesn't have the given index.
+    fn array_none_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    // Wrapper called when the elem in the array isn't a String.
+    fn not_a_string_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    // Wrapper called when string is not a big decimal
+    fn not_a_float_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+}
+
+impl ErrorMetadata for LowInfoMetadata {
+    // Wrapper called when try_from failed to receive a JSON Object.
+    fn try_failure_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    // Wrapper called when the key does not exist.
+    fn no_key_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    // Called to get the key name when the key hasn't been found.
+    fn on_no_key() -> &'static str {
+        "l"
     }
     // Wrapper called when the array doesn't have the given index.
     fn array_none_wrapper() -> &'static str {
