@@ -1,4 +1,5 @@
 use bigdecimal::BigDecimal;
+use super::json_helpers::{BidError};
 use serde_json::{Map, Value};
 use std::fmt;
 use std::str::FromStr;
@@ -16,7 +17,7 @@ impl TryFrom<&Value> for BidInfo {
         // First, remove the map element from its Value wrapper.
         match val.as_object() {
             Some(obj) => try_from_map(obj),
-            None => Err(BidError::new("Value is not an Object")),
+            None => Err(BidError::try_from_error()),
         }
     }
 }
@@ -25,7 +26,7 @@ fn try_from_map(obj: &Map<String, Value>) -> Result<BidInfo, BidError> {
     // Expected only one key in the map: "b"
     match obj.get("b") {
         Some(array) => try_from_array(array),
-        None => Err(BidError::new("Object has no key \"b\"")),
+        None => Err(BidError::no_key_error()),
     }
 }
 
@@ -43,45 +44,22 @@ fn try_from_array(array: &Value) -> Result<BidInfo, BidError> {
 }
 
 fn unpack_decimal(val: Option<&Value>) -> Result<BigDecimal, BidError> {
-    if val.is_none() {
-        let err = BidError::new("Value is none.");
-        return Err(err);
+    match val {
+        Some(v) => unpack_unwrapped_decimal(v),
+        None => Err(BidError::none_value_error()),
     }
-    unpack_unwrapped_decimal(val.unwrap())
 }
 
 fn unpack_unwrapped_decimal(val: &Value) -> Result<BigDecimal, BidError> {
     match val {
         Value::String(decimal_str) => unpack_decimal_str(decimal_str),
-        _ => Err(BidError::new("Value is not a String.")),
+        _ => Err(BidError::not_a_string_error()),
     }
 }
 
 fn unpack_decimal_str(val: &str) -> Result<BigDecimal, BidError> {
     let parsed_decimal = BigDecimal::from_str(val);
-    let err_transformer =
-        |err| BidError::new(format!("Value provided is not a big decimal: {}", err));
-    parsed_decimal.map_err(err_transformer)
-}
-
-pub struct BidError(String);
-
-impl BidError {
-    pub fn new<T: Into<String>>(message: T) -> Self {
-        Self(message.into())
-    }
-}
-
-impl fmt::Display for BidError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Error parsing BidInfo: {}", self.0)
-    }
-}
-
-impl fmt::Debug for BidError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
-    }
+    parsed_decimal.map_err(|_| BidError::not_a_float_error())
 }
 
 #[cfg(test)]

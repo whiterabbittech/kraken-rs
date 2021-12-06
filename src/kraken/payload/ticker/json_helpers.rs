@@ -1,60 +1,70 @@
 use std::fmt;
 use std::marker::PhantomData;
 
+pub type AskError = ParseError<AskInfoMetadata>;
+pub type BidError = ParseError<BidInfoMetadata>;
+pub type HighError = ParseError<HighInfoMetadata>;
+
 pub enum ParseError<T: ErrorMetadata> {
-    TryFromError(PhantomData<T>),
-    NoKeyError(PhantomData<T>),
-    NoneValueError(PhantomData<T>),
-    NotAStringError(PhantomData<T>),
-    NotAFloatError(PhantomData<T>),
+    TryFrom(PhantomData<T>),
+    NoKey(PhantomData<T>),
+    NoneValue(PhantomData<T>),
+    NotAString(PhantomData<T>),
+    NotAFloat(PhantomData<T>),
 }
 impl<T: ErrorMetadata> ParseError<T> {
     pub fn try_from_error() -> Self {
-        Self::TryFromError(PhantomData)
+        Self::TryFrom(PhantomData)
     }
 
     pub fn no_key_error() -> Self {
-        Self::NoKeyError(PhantomData)
+        Self::NoKey(PhantomData)
     }
 
     pub fn none_value_error() -> Self {
-        Self::NoneValueError(PhantomData)
+        Self::NoneValue(PhantomData)
     }
 
     pub fn not_a_string_error() -> Self {
-        Self::NotAStringError(PhantomData)
+        Self::NotAString(PhantomData)
     }
 
     pub fn not_a_float_error() -> Self {
-        Self::NotAFloatError(PhantomData)
+        Self::NotAFloat(PhantomData)
     }
 }
 
 impl<T: ErrorMetadata> fmt::Display for ParseError<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::TryFromError(_) => {
+            Self::TryFrom(_) => {
                 let wrapper = T::try_failure_wrapper();
                 write!(f, "{}: Value is not an Object.", wrapper)
-            },
-            Self::NoKeyError(_) => {
+            }
+            Self::NoKey(_) => {
                 let wrapper = T::no_key_wrapper();
                 let key = T::on_no_key();
                 write!(f, "{}: Object no key \"{}\"", wrapper, key)
-            },
-            Self::NoneValueError(_) => {
+            }
+            Self::NoneValue(_) => {
                 let wrapper = T::array_none_wrapper();
                 write!(f, "{}: Value at index provided is None", wrapper)
-            },
-            Self::NotAStringError(_) => {
+            }
+            Self::NotAString(_) => {
                 let wrapper = T::not_a_string_wrapper();
                 write!(f, "{}: Value is not a String", wrapper)
-            },
-            Self::NotAFloatError(_) => {
+            }
+            Self::NotAFloat(_) => {
                 let wrapper = T::not_a_float_wrapper();
                 write!(f, "{}: String at array index is not a Number", wrapper)
-            },
+            }
         }
+    }
+}
+
+impl<T: ErrorMetadata> fmt::Debug for ParseError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
     }
 }
 
@@ -137,42 +147,42 @@ impl ErrorMetadata for BidInfoMetadata {
         "b"
     }
     // Wrapper called when the array doesn't have the given index.
-    fn array_none_wrapper() ->  &'static str {
+    fn array_none_wrapper() -> &'static str {
         Self::wrapper()
     }
     // Wrapper called when the elem in the array isn't a String.
-    fn not_a_string_wrapper() ->  &'static str {
+    fn not_a_string_wrapper() -> &'static str {
         Self::wrapper()
     }
     // Wrapper called when string is not a big decimal
-    fn not_a_float_wrapper() ->  &'static str {
+    fn not_a_float_wrapper() -> &'static str {
         Self::wrapper()
     }
 }
 
 impl ErrorMetadata for HighInfoMetadata {
     // Wrapper called when try_from failed to receive a JSON Object.
-    fn try_failure_wrapper() ->  &'static str {
+    fn try_failure_wrapper() -> &'static str {
         Self::wrapper()
     }
     // Wrapper called when the key does not exist.
-    fn no_key_wrapper() ->  &'static str {
+    fn no_key_wrapper() -> &'static str {
         Self::wrapper()
     }
     // Called to get the key name when the key hasn't been found.
-    fn on_no_key() ->  &'static str {
+    fn on_no_key() -> &'static str {
         "h"
     }
     // Wrapper called when the array doesn't have the given index.
-    fn array_none_wrapper() ->  &'static str {
+    fn array_none_wrapper() -> &'static str {
         Self::wrapper()
     }
     // Wrapper called when the elem in the array isn't a String.
-    fn not_a_string_wrapper() ->  &'static str {
+    fn not_a_string_wrapper() -> &'static str {
         Self::wrapper()
     }
     // Wrapper called when string is not a big decimal
-    fn not_a_float_wrapper() ->  &'static str {
+    fn not_a_float_wrapper() -> &'static str {
         Self::wrapper()
     }
 }

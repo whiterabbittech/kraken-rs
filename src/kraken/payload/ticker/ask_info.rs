@@ -1,15 +1,13 @@
+use super::json_helpers::{AskError};
 use bigdecimal::BigDecimal;
 use serde_json::{Map, Value};
 use std::str::FromStr;
-use super::json_helpers::{ParseError, AskInfoMetadata};
 
 pub struct AskInfo {
     pub ask: BigDecimal,
     pub whole_lot_volume: BigDecimal,
     pub lot_volume: BigDecimal,
 }
-
-type AskError = ParseError<AskInfoMetadata>;
 
 impl TryFrom<&Value> for AskInfo {
     type Error = AskError;
@@ -46,6 +44,7 @@ fn try_from_array(array: &Value) -> Result<AskInfo, AskError> {
     })
 }
 
+/// TODO: This was can probably extract into a helper.
 fn unpack_decimal(val: Option<&Value>) -> Result<BigDecimal, AskError> {
     match val {
         Some(v) => unpack_unwrapped_decimal(v),
@@ -53,6 +52,7 @@ fn unpack_decimal(val: Option<&Value>) -> Result<BigDecimal, AskError> {
     }
 }
 
+/// TODO: This was can probably extract into a helper.
 fn unpack_unwrapped_decimal(val: &Value) -> Result<BigDecimal, AskError> {
     match val {
         Value::String(decimal_str) => unpack_decimal_str(decimal_str),
@@ -60,6 +60,7 @@ fn unpack_unwrapped_decimal(val: &Value) -> Result<BigDecimal, AskError> {
     }
 }
 
+/// TODO: This was can probably extract into a helper.
 fn unpack_decimal_str(val: &str) -> Result<BigDecimal, AskError> {
     let parsed_decimal = BigDecimal::from_str(val);
     parsed_decimal.map_err(|_| AskError::not_a_float_error())
