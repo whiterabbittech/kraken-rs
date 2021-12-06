@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use serde_json::{Map, Value};
-use std::fmt;
 use std::str::FromStr;
+use super::json_helpers::{ParseError, AskInfoMetadata};
 
 pub struct AskInfo {
     pub ask: BigDecimal,
@@ -9,14 +9,16 @@ pub struct AskInfo {
     pub lot_volume: BigDecimal,
 }
 
+type AskError = ParseError<AskInfoMetadata>;
+
 impl TryFrom<&Value> for AskInfo {
     type Error = AskError;
 
     fn try_from(val: &Value) -> Result<Self, Self::Error> {
         // First, remove the map element from its Value wrapper.
         match val.as_object() {
-            None => Err(AskError::new("Value is not an Object")),
             Some(obj) => try_from_map(obj),
+            None => Err(AskError::try_from_error()),
         }
     }
 }
@@ -25,7 +27,7 @@ fn try_from_map(obj: &Map<String, Value>) -> Result<AskInfo, AskError> {
     // Expected only one key in the map: "a"
     match obj.get("a") {
         Some(array) => try_from_array(array),
-        None => Err(AskError::new("Object has no key \"a\"")),
+        None => Err(AskError::no_key_error()),
     }
 }
 
@@ -45,45 +47,22 @@ fn try_from_array(array: &Value) -> Result<AskInfo, AskError> {
 }
 
 fn unpack_decimal(val: Option<&Value>) -> Result<BigDecimal, AskError> {
-    if val.is_none() {
-        let err = AskError::new("Value is none.");
-        return Err(err);
+    match val {
+        Some(v) => unpack_unwrapped_decimal(v),
+        None => Err(AskError::none_value_error()),
     }
-    unpack_unwrapped_decimal(val.unwrap())
 }
 
 fn unpack_unwrapped_decimal(val: &Value) -> Result<BigDecimal, AskError> {
     match val {
         Value::String(decimal_str) => unpack_decimal_str(decimal_str),
-        _ => Err(AskError::new("Value is not a String.")),
+        _ => Err(AskError::not_a_string_error()),
     }
 }
 
 fn unpack_decimal_str(val: &str) -> Result<BigDecimal, AskError> {
     let parsed_decimal = BigDecimal::from_str(val);
-    let err_transformer =
-        |err| AskError::new(format!("Value provided is not a big decimal: {}", err));
-    parsed_decimal.map_err(err_transformer)
-}
-
-pub struct AskError(String);
-
-impl AskError {
-    pub fn new<T: Into<String>>(message: T) -> Self {
-        Self(message.into())
-    }
-}
-
-impl fmt::Display for AskError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Error parsing AskInfo: {}", self.0)
-    }
-}
-
-impl fmt::Debug for AskError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
-    }
+    parsed_decimal.map_err(|_| AskError::not_a_float_error())
 }
 
 #[cfg(test)]

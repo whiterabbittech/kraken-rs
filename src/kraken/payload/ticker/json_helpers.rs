@@ -8,6 +8,27 @@ pub enum ParseError<T: ErrorMetadata> {
     NotAStringError(PhantomData<T>),
     NotAFloatError(PhantomData<T>),
 }
+impl<T: ErrorMetadata> ParseError<T> {
+    pub fn try_from_error() -> Self {
+        Self::TryFromError(PhantomData)
+    }
+
+    pub fn no_key_error() -> Self {
+        Self::NoKeyError(PhantomData)
+    }
+
+    pub fn none_value_error() -> Self {
+        Self::NoneValueError(PhantomData)
+    }
+
+    pub fn not_a_string_error() -> Self {
+        Self::NotAStringError(PhantomData)
+    }
+
+    pub fn not_a_float_error() -> Self {
+        Self::NotAFloatError(PhantomData)
+    }
+}
 
 impl<T: ErrorMetadata> fmt::Display for ParseError<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
