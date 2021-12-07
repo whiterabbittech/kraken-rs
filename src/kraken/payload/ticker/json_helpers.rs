@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
 use serde_json::Value;
+use std::convert::TryInto;
 
 pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;
@@ -197,5 +198,12 @@ pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> 
         .into_iter()
         .map(unpacker)
         .collect();
-    results.map(|vector| vector.try_into().unwrap())
+    results.map(vec_to_array)
+}
+
+fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
+    // else-case is what happens when the vector isn't the right length.
+    let else_case = |v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len());
+    // Jam this vector into an array.
+    v.try_into().unwrap_or_else(else_case)
 }
