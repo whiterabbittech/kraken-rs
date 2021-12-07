@@ -8,6 +8,7 @@ pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;
 pub type HighError = ParseError<HighInfoMetadata>;
 pub type LowError = ParseError<LowInfoMetadata>;
+pub type LastTradeError = ParseError<LastTradeInfoMetadata>;
 
 pub enum ParseError<T: ErrorMetadata> {
     TryFrom(PhantomData<T>),
@@ -16,6 +17,7 @@ pub enum ParseError<T: ErrorMetadata> {
     NotAString(PhantomData<T>),
     NotAFloat(PhantomData<T>),
 }
+
 impl<T: ErrorMetadata> ParseError<T> {
     pub fn try_from_error() -> Self {
         Self::TryFrom(PhantomData)
@@ -87,142 +89,86 @@ pub trait ErrorMetadata {
     fn not_a_float_wrapper() -> &'static str;
 }
 
+pub trait ErrorWrapper {    
+    fn wrapper() -> &'static str;    
+    fn key() -> &'static str;
+}
+
+impl <T: ErrorWrapper> ErrorMetadata for T {
+    fn try_failure_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    fn no_key_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    fn on_no_key() -> &'static str {
+        Self::key()
+    }
+    fn array_none_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    fn not_a_string_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+    fn not_a_float_wrapper() -> &'static str {
+        Self::wrapper()
+    }
+}
+
 pub struct AskInfoMetadata {}
 
-impl AskInfoMetadata {
+impl ErrorWrapper for AskInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing AskInfo"
+    }
+
+    fn key() -> &'static str {
+        "a"
     }
 }
 
 pub struct BidInfoMetadata {}
-impl BidInfoMetadata {
+impl ErrorWrapper for BidInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing BidInfo"
+    }
+
+    fn key() -> &'static str {
+        "b"
     }
 }
 
 pub struct HighInfoMetadata {}
 
-impl HighInfoMetadata {
+impl ErrorWrapper for HighInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing HighInfo"
+    }
+    fn key() -> &'static str {
+        "h"
     }
 }
 
 pub struct LowInfoMetadata {}
 
-impl LowInfoMetadata {
+impl ErrorWrapper for LowInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing LowInfo"
     }
-}
-
-impl ErrorMetadata for AskInfoMetadata {
-    // Wrapper called when try_from failed to receive a JSON Object.
-    fn try_failure_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when the key does not exist.
-    fn no_key_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Called to get the key name when the key hasn't been found.
-    fn on_no_key() -> &'static str {
-        "a"
-    }
-    // Wrapper called when the array doesn't have the given index.
-    fn array_none_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when the elem in the array isn't a String.
-    fn not_a_string_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when string is not a big decimal
-    fn not_a_float_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-}
-
-impl ErrorMetadata for BidInfoMetadata {
-    // Wrapper called when try_from failed to receive a JSON Object.
-    fn try_failure_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when the key does not exist.
-    fn no_key_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Called to get the key name when the key hasn't been found.
-    fn on_no_key() -> &'static str {
-        "b"
-    }
-    // Wrapper called when the array doesn't have the given index.
-    fn array_none_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when the elem in the array isn't a String.
-    fn not_a_string_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when string is not a big decimal
-    fn not_a_float_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-}
-
-impl ErrorMetadata for HighInfoMetadata {
-    // Wrapper called when try_from failed to receive a JSON Object.
-    fn try_failure_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when the key does not exist.
-    fn no_key_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Called to get the key name when the key hasn't been found.
-    fn on_no_key() -> &'static str {
-        "h"
-    }
-    // Wrapper called when the array doesn't have the given index.
-    fn array_none_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when the elem in the array isn't a String.
-    fn not_a_string_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when string is not a big decimal
-    fn not_a_float_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-}
-
-impl ErrorMetadata for LowInfoMetadata {
-    // Wrapper called when try_from failed to receive a JSON Object.
-    fn try_failure_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when the key does not exist.
-    fn no_key_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Called to get the key name when the key hasn't been found.
-    fn on_no_key() -> &'static str {
+    fn key() -> &'static str {
         "l"
     }
-    // Wrapper called when the array doesn't have the given index.
-    fn array_none_wrapper() -> &'static str {
-        Self::wrapper()
+}
+
+pub struct LastTradeInfoMetadata {}
+
+impl ErrorWrapper for LastTradeInfoMetadata {
+    fn wrapper() -> &'static str {
+        "Error Parsing LastTradeInfo"
     }
-    // Wrapper called when the elem in the array isn't a String.
-    fn not_a_string_wrapper() -> &'static str {
-        Self::wrapper()
-    }
-    // Wrapper called when string is not a big decimal
-    fn not_a_float_wrapper() -> &'static str {
-        Self::wrapper()
+
+    fn key() -> &'static str {
+        "c"
     }
 }
 
