@@ -3,7 +3,6 @@ use std::marker::PhantomData;
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
 use serde_json::Value;
-use std::convert::TryFrom;
 
 pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;
@@ -193,24 +192,10 @@ fn unpack_decimal_str<T: ErrorMetadata>(val: &str) -> Result<BigDecimal, ParseEr
 }
 
 pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> Result<[BigDecimal; N], ParseError<T>> {
-// pub fn unpack_decimal_array<T: ErrorMetadata>(array: &Value) -> Result<Vec<BigDecimal>, ParseError<T>> {
-    let results: Result<Vec<BigDecimal>, ParseError<T>> = (0..N).into_iter().map(|i| {
-        let decimal_str = array.get(i); 
-        unpack_decimal(decimal_str)
-    }).collect();
-    let array: Result<[BigDecimal; N], ParseError<T>> = results.map(|vector| vector.try_into().unwrap());
-    array
-
-    // Hmm... I wonder if there's a fancy functional way to do
-    // this in the 2021 Edition.
-    //0..N.iter().map(|i| unpack_decimal(array.get(i))) 
-    // let mut decimals = [BigDecimal::default(); N];
-    // Let's get N values out of the array.
-    // Parse each of them as BigDecimals.
-    //for i in 0..N {
-        //let decimal_str = array.get(i);
-        //decimals[i] = unpack_decimal(decimal_str)?;
-    //}
-    //Ok(decimals)
-    
+    let unpacker = |i| unpack_decimal(array.get(i));
+    let results: Result<Vec<BigDecimal>, ParseError<T>> = (0..N)
+        .into_iter()
+        .map(unpacker)
+        .collect();
+    results.map(|vector| vector.try_into().unwrap())
 }

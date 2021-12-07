@@ -1,5 +1,5 @@
 use bigdecimal::BigDecimal;
-use super::json_helpers::{LastTradeError, unpack_decimal};
+use super::json_helpers::{LastTradeError, unpack_decimal_array};
 use serde_json::{Map, Value};
 
 pub struct LastTradeInfo {
@@ -32,11 +32,12 @@ fn try_from_map(obj: &Map<String, Value>) -> Result<LastTradeInfo, LastTradeErro
 fn try_from_array(array: &Value) -> Result<LastTradeInfo, LastTradeError> {
     // The Value is expected to be an array.
     // This array is expected to have exactly three values.
-    let price_val = array.get(0);
-    let lot_volume_val = array.get(1);
+    let parsed_array: [BigDecimal; 2] = unpack_decimal_array(array)?;
+    let price = parsed_array[0].clone();
+    let lot_volume = parsed_array[1].clone();
     Ok(LastTradeInfo {
-        price: unpack_decimal(price_val)?,
-        lot_volume: unpack_decimal(lot_volume_val)?,
+        price,
+        lot_volume,
     })
 }
 
