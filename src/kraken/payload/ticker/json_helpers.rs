@@ -194,11 +194,11 @@ fn unpack_decimal_str<T: ErrorMetadata>(val: &str) -> Result<BigDecimal, ParseEr
 
 pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> Result<[BigDecimal; N], ParseError<T>> {
     let unpacker = |i| unpack_decimal(array.get(i));
-    let results: Result<Vec<BigDecimal>, ParseError<T>> = (0..N)
+    (0..N)
         .into_iter()
         .map(unpacker)
-        .collect();
-    results.map(vec_to_array)
+        .collect::<Result<Vec<BigDecimal>, ParseError<T>>>()
+        .map(vec_to_array)
 }
 
 fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
