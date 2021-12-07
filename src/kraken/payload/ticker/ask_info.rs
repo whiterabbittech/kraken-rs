@@ -1,4 +1,4 @@
-use super::json_helpers::{AskError, unpack_decimal};
+use super::json_helpers::{AskError, unpack_decimal_array};
 use bigdecimal::BigDecimal;
 use serde_json::{Map, Value};
 
@@ -33,13 +33,14 @@ fn try_from_map(obj: &Map<String, Value>) -> Result<AskInfo, AskError> {
 fn try_from_array(array: &Value) -> Result<AskInfo, AskError> {
     // The Value is expected to be an array.
     // This array is expected to have exactly three values.
-    let ask_val = array.get(0);
-    let whole_volume_val = array.get(1);
-    let lot_volume_val = array.get(2);
+    let parsed_array: [BigDecimal; 3] = unpack_decimal_array(array)?;
+    let ask = parsed_array[0].clone();
+    let whole_lot_volume = parsed_array[1].clone();
+    let lot_volume = parsed_array[2].clone();
     Ok(AskInfo {
-        ask: unpack_decimal(ask_val)?,
-        whole_lot_volume: unpack_decimal(whole_volume_val)?,
-        lot_volume: unpack_decimal(lot_volume_val)?,
+        ask,
+        whole_lot_volume,
+        lot_volume,
     })
 }
 

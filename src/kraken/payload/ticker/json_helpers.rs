@@ -2,7 +2,7 @@ use std::fmt;
 use std::marker::PhantomData;
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use std::convert::TryInto;
 
 pub type AskError = ParseError<AskInfoMetadata>;
@@ -90,9 +90,8 @@ pub trait ErrorMetadata {
     fn not_a_float_wrapper() -> &'static str;
 }
 
-pub trait ErrorWrapper {    
+pub trait ErrorWrapper: Keyable {
     fn wrapper() -> &'static str;    
-    fn key() -> &'static str;
 }
 
 impl <T: ErrorWrapper> ErrorMetadata for T {
@@ -122,7 +121,9 @@ impl ErrorWrapper for AskInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing AskInfo"
     }
+}
 
+impl Keyable for AskInfoMetadata {
     fn key() -> &'static str {
         "a"
     }
@@ -133,7 +134,9 @@ impl ErrorWrapper for BidInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing BidInfo"
     }
+}
 
+impl Keyable for BidInfoMetadata {
     fn key() -> &'static str {
         "b"
     }
@@ -145,10 +148,14 @@ impl ErrorWrapper for HighInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing HighInfo"
     }
+}
+
+impl Keyable for HighInfoMetadata {
     fn key() -> &'static str {
         "h"
     }
 }
+
 
 pub struct LowInfoMetadata {}
 
@@ -156,6 +163,9 @@ impl ErrorWrapper for LowInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing LowInfo"
     }
+}
+
+impl Keyable for LowInfoMetadata {
     fn key() -> &'static str {
         "l"
     }
@@ -167,7 +177,9 @@ impl ErrorWrapper for LastTradeInfoMetadata {
     fn wrapper() -> &'static str {
         "Error Parsing LastTradeInfo"
     }
+}
 
+impl Keyable for LastTradeInfoMetadata {
     fn key() -> &'static str {
         "c"
     }
@@ -190,6 +202,44 @@ fn unpack_unwrapped_decimal<T: ErrorMetadata>(val: &Value) -> Result<BigDecimal,
 fn unpack_decimal_str<T: ErrorMetadata>(val: &str) -> Result<BigDecimal, ParseError<T>> {
     let parsed_decimal = BigDecimal::from_str(val);
     parsed_decimal.map_err(|_| ParseError::<T>::not_a_float_error())
+}
+
+trait Keyable {
+    fn key() -> &'static str;
+}
+
+struct ArrayWrapper<T, P, const N: usize> ([T; N], PhantomData<P>);
+
+impl <T, P, const N: usize> ArrayWrapper<T, P, N> {
+    pub fn new(array: [T; N]) -> Self {
+        Self(array, PhantomData)
+    }
+}
+
+impl<T, P, const N: usize> Into<[T; N]> for ArrayWrapper<T, P, N> {
+    fn into(self) -> [T; N] {
+        self.0
+    }
+}
+
+impl<T: ErrorWrapper, const N: usize> TryFrom<&Value> for ArrayWrapper<BigDecimal, T, N> {
+    type Error = ParseError<T>;
+
+    fn try_from(val: &Value) -> Result<Self, Self::Error> {
+        // First, remove the map element from its Value wrapper.
+        match val.as_object() {
+            Some(obj) => try_from_map(obj).map(|val| ArrayWrapper::new(val)),
+            None => Err(ParseError::<T>::try_from_error()),
+        }
+    }
+}
+
+fn try_from_map <T: ErrorWrapper, const N: usize> (obj: &Map<String, Value>) -> Result<[BigDecimal; N], ParseError<T>> {
+    let key = T::key();
+    match obj.get(key) {
+        Some(array) => unpack_decimal_array(array),
+        None => Err(ParseError::<T>::no_key_error()),
+    }
 }
 
 pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> Result<[BigDecimal; N], ParseError<T>> {
