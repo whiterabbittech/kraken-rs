@@ -1,5 +1,5 @@
 use bigdecimal::BigDecimal;
-use super::json_helpers::{BidError, unpack_decimal};
+use super::json_helpers::{BidError, ArrayWrapper};
 use serde_json::{Map, Value};
 
 pub struct BidInfo {
@@ -12,33 +12,16 @@ impl TryFrom<&Value> for BidInfo {
     type Error = BidError;
 
     fn try_from(val: &Value) -> Result<Self, Self::Error> {
-        // First, remove the map element from its Value wrapper.
-        match val.as_object() {
-            Some(obj) => try_from_map(obj),
-            None => Err(BidError::try_from_error()),
-        }
+        let array: [BigDecimal; 3] = ArrayWrapper::try_from(val)?.into();
+        let bid = array[0].clone();
+        let whole_lot_volume = array[1].clone();
+        let lot_volume = array[2].clone();
+        Ok(BidInfo {
+            bid,
+            whole_lot_volume,
+            lot_volume,
+        })
     }
-}
-
-fn try_from_map(obj: &Map<String, Value>) -> Result<BidInfo, BidError> {
-    // Expected only one key in the map: "b"
-    match obj.get("b") {
-        Some(array) => try_from_array(array),
-        None => Err(BidError::no_key_error()),
-    }
-}
-
-fn try_from_array(array: &Value) -> Result<BidInfo, BidError> {
-    // The Value is expected to be an array.
-    // This array is expected to have exactly three values.
-    let bid_val = array.get(0);
-    let whole_volume_val = array.get(1);
-    let lot_volume_val = array.get(2);
-    Ok(BidInfo {
-        bid: unpack_decimal(bid_val)?,
-        whole_lot_volume: unpack_decimal(whole_volume_val)?,
-        lot_volume: unpack_decimal(lot_volume_val)?,
-    })
 }
 
 #[cfg(test)]

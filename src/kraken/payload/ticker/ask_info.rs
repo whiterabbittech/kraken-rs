@@ -12,9 +12,7 @@ impl TryFrom<&Value> for AskInfo {
     type Error = AskError;
 
     fn try_from(val: &Value) -> Result<Self, Self::Error> {
-        let array: [BigDecimal; 3] = ArrayWrapper::try_from(val)
-            .map(|v| v.into())?;
-
+        let array: [BigDecimal; 3] = ArrayWrapper::try_from(val)?.into();
         let ask = array[0].clone();
         let whole_lot_volume = array[1].clone();
         let lot_volume = array[2].clone();

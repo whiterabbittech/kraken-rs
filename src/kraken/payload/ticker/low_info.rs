@@ -1,6 +1,6 @@
-use super::json_helpers::{LowError, unpack_decimal};
+use super::json_helpers::{LowError, ArrayWrapper};
 use bigdecimal::BigDecimal;
-use serde_json::{Map, Value};
+use serde_json::{Value};
 
 pub struct LowInfo {
     pub today: BigDecimal,
@@ -11,33 +11,14 @@ impl TryFrom<&Value> for LowInfo {
     type Error = LowError;
 
     fn try_from(val: &Value) -> Result<Self, Self::Error> {
-        // first, remove the map element from its Value wrapper.
-        match val.as_object() {
-            Some(obj) => try_from_map(obj),
-            None => Err(LowError::try_from_error()),
-        }
+        let array: [BigDecimal; 2] = ArrayWrapper::try_from(val)?.into();
+        let today = array[0].clone();
+        let rolling_24h = array[1].clone();
+        Ok(LowInfo {
+            today,
+            rolling_24h,
+        })
     }
-}
-
-fn try_from_map(obj: &Map<String, Value>) -> Result<LowInfo, LowError> {
-    // Expected only one key in the map: "h"
-    match obj.get("l") {
-        Some(array) => try_from_array(array),
-        None => Err(LowError::no_key_error()),
-    }
-}
-
-/// try_from_array is called with the value associated with
-/// the object's key "a". The value is expected to be an array of len 3.
-fn try_from_array(array: &Value) -> Result<LowInfo, LowError> {
-    // The Value is expected to be an array.
-    // This array is expected to have exactly three values.
-    let today_val = array.get(0);
-    let rolling_24h_val = array.get(1);
-    Ok(LowInfo {
-        today: unpack_decimal(today_val)?,
-        rolling_24h: unpack_decimal(rolling_24h_val)?,
-    })
 }
 
 #[cfg(test)]
