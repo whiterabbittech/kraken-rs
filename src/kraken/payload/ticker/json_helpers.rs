@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
 use serde_json::Value;
+use std::convert::TryFrom;
 
 pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;
@@ -191,13 +192,14 @@ fn unpack_decimal_str<T: ErrorMetadata>(val: &str) -> Result<BigDecimal, ParseEr
     parsed_decimal.map_err(|_| ParseError::<T>::not_a_float_error())
 }
 
-//pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> Result<[BigDecimal; N], ParseError<T>> {
-pub fn unpack_decimal_array<T: ErrorMetadata>(array: &Value) -> Result<Vec<BigDecimal>, ParseError<T>> {
-    let results: Result<Vec<BigDecimal>, ParseError<T>> = (0..5).into_iter().map(|i| {
+pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> Result<[BigDecimal; N], ParseError<T>> {
+// pub fn unpack_decimal_array<T: ErrorMetadata>(array: &Value) -> Result<Vec<BigDecimal>, ParseError<T>> {
+    let results: Result<Vec<BigDecimal>, ParseError<T>> = (0..N).into_iter().map(|i| {
         let decimal_str = array.get(i); 
         unpack_decimal(decimal_str)
     }).collect();
-    results
+    let array: Result<[BigDecimal; N], ParseError<T>> = results.map(|vector| vector.try_into().unwrap());
+    array
 
     // Hmm... I wonder if there's a fancy functional way to do
     // this in the 2021 Edition.
