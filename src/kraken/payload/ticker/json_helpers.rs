@@ -204,11 +204,11 @@ fn unpack_decimal_str<T: ErrorMetadata>(val: &str) -> Result<BigDecimal, ParseEr
     parsed_decimal.map_err(|_| ParseError::<T>::not_a_float_error())
 }
 
-trait Keyable {
+pub trait Keyable {
     fn key() -> &'static str;
 }
 
-struct ArrayWrapper<T, P, const N: usize> ([T; N], PhantomData<P>);
+pub struct ArrayWrapper<T, P, const N: usize> ([T; N], PhantomData<P>);
 
 impl <T, P, const N: usize> ArrayWrapper<T, P, N> {
     pub fn new(array: [T; N]) -> Self {
