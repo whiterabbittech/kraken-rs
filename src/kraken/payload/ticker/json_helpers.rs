@@ -190,3 +190,25 @@ fn unpack_decimal_str<T: ErrorMetadata>(val: &str) -> Result<BigDecimal, ParseEr
     let parsed_decimal = BigDecimal::from_str(val);
     parsed_decimal.map_err(|_| ParseError::<T>::not_a_float_error())
 }
+
+//pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> Result<[BigDecimal; N], ParseError<T>> {
+pub fn unpack_decimal_array<T: ErrorMetadata>(array: &Value) -> Result<Vec<BigDecimal>, ParseError<T>> {
+    let results: Result<Vec<BigDecimal>, ParseError<T>> = (0..5).into_iter().map(|i| {
+        let decimal_str = array.get(i); 
+        unpack_decimal(decimal_str)
+    }).collect();
+    results
+
+    // Hmm... I wonder if there's a fancy functional way to do
+    // this in the 2021 Edition.
+    //0..N.iter().map(|i| unpack_decimal(array.get(i))) 
+    // let mut decimals = [BigDecimal::default(); N];
+    // Let's get N values out of the array.
+    // Parse each of them as BigDecimals.
+    //for i in 0..N {
+        //let decimal_str = array.get(i);
+        //decimals[i] = unpack_decimal(decimal_str)?;
+    //}
+    //Ok(decimals)
+    
+}
