@@ -1,5 +1,5 @@
+use super::json_helpers::{unpack_decimal_array, LastTradeError};
 use bigdecimal::BigDecimal;
-use super::json_helpers::{LastTradeError, unpack_decimal_array};
 use serde_json::{Map, Value};
 
 pub struct LastTradeInfo {
@@ -35,10 +35,7 @@ fn try_from_array(array: &Value) -> Result<LastTradeInfo, LastTradeError> {
     let parsed_array: [BigDecimal; 2] = unpack_decimal_array(array)?;
     let price = parsed_array[0].clone();
     let lot_volume = parsed_array[1].clone();
-    Ok(LastTradeInfo {
-        price,
-        lot_volume,
-    })
+    Ok(LastTradeInfo { price, lot_volume })
 }
 
 #[cfg(test)]

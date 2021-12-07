@@ -1,6 +1,6 @@
-use super::json_helpers::{HighError, ArrayWrapper};
+use super::json_helpers::{ArrayWrapper, HighError};
 use bigdecimal::BigDecimal;
-use serde_json::{Value};
+use serde_json::Value;
 
 pub struct HighInfo {
     pub today: BigDecimal,
@@ -14,10 +14,7 @@ impl TryFrom<&Value> for HighInfo {
         let array: [BigDecimal; 2] = ArrayWrapper::try_from(val)?.into();
         let today = array[0].clone();
         let rolling_24h = array[1].clone();
-        Ok(HighInfo {
-            today,
-            rolling_24h,
-        })
+        Ok(HighInfo { today, rolling_24h })
     }
 }
 

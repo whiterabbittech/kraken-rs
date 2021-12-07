@@ -1,9 +1,9 @@
-use std::fmt;
-use std::marker::PhantomData;
 use bigdecimal::BigDecimal;
-use std::str::FromStr;
 use serde_json::{Map, Value};
 use std::convert::TryInto;
+use std::fmt;
+use std::marker::PhantomData;
+use std::str::FromStr;
 
 pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;
@@ -91,10 +91,10 @@ pub trait ErrorMetadata {
 }
 
 pub trait ErrorWrapper: Keyable {
-    fn wrapper() -> &'static str;    
+    fn wrapper() -> &'static str;
 }
 
-impl <T: ErrorWrapper> ErrorMetadata for T {
+impl<T: ErrorWrapper> ErrorMetadata for T {
     fn try_failure_wrapper() -> &'static str {
         Self::wrapper()
     }
@@ -156,7 +156,6 @@ impl Keyable for HighInfoMetadata {
     }
 }
 
-
 pub struct LowInfoMetadata {}
 
 impl ErrorWrapper for LowInfoMetadata {
@@ -208,9 +207,9 @@ pub trait Keyable {
     fn key() -> &'static str;
 }
 
-pub struct ArrayWrapper<T, P, const N: usize> ([T; N], PhantomData<P>);
+pub struct ArrayWrapper<T, P, const N: usize>([T; N], PhantomData<P>);
 
-impl <T, P, const N: usize> ArrayWrapper<T, P, N> {
+impl<T, P, const N: usize> ArrayWrapper<T, P, N> {
     pub fn new(array: [T; N]) -> Self {
         Self(array, PhantomData)
     }
@@ -234,7 +233,9 @@ impl<T: ErrorWrapper, const N: usize> TryFrom<&Value> for ArrayWrapper<BigDecima
     }
 }
 
-fn try_from_map <T: ErrorWrapper, const N: usize> (obj: &Map<String, Value>) -> Result<[BigDecimal; N], ParseError<T>> {
+fn try_from_map<T: ErrorWrapper, const N: usize>(
+    obj: &Map<String, Value>,
+) -> Result<[BigDecimal; N], ParseError<T>> {
     let key = T::key();
     match obj.get(key) {
         Some(array) => unpack_decimal_array(array),
@@ -242,7 +243,9 @@ fn try_from_map <T: ErrorWrapper, const N: usize> (obj: &Map<String, Value>) -> 
     }
 }
 
-pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(array: &Value) -> Result<[BigDecimal; N], ParseError<T>> {
+pub fn unpack_decimal_array<T: ErrorMetadata, const N: usize>(
+    array: &Value,
+) -> Result<[BigDecimal; N], ParseError<T>> {
     let unpacker = |i| unpack_decimal(array.get(i));
     (0..N)
         .into_iter()
