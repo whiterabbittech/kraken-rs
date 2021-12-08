@@ -1,6 +1,6 @@
-use super::json_helpers::{ArrayWrapper, BidError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
+use super::util::{BidError, ArrayWrapper};
 
 pub struct BidInfo {
     pub bid: BigDecimal,
@@ -12,7 +12,7 @@ impl TryFrom<&Value> for BidInfo {
     type Error = BidError;
 
     fn try_from(val: &Value) -> Result<Self, Self::Error> {
-        let array: [BigDecimal; 3] = ArrayWrapper::try_from(val)?.into();
+        let array: Box<[BigDecimal; 3]> = ArrayWrapper::try_from(val)?.into();
         let bid = array[0].clone();
         let whole_lot_volume = array[1].clone();
         let lot_volume = array[2].clone();

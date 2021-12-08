@@ -1,6 +1,6 @@
-use super::json_helpers::{unpack_decimal_array, LastTradeError};
 use bigdecimal::BigDecimal;
-use serde_json::{Map, Value};
+use serde_json::{Value};
+use super::util::{LastTradeError, ArrayWrapper};
 
 pub struct LastTradeInfo {
     pub price: BigDecimal,
@@ -11,31 +11,11 @@ impl TryFrom<&Value> for LastTradeInfo {
     type Error = LastTradeError;
 
     fn try_from(val: &Value) -> Result<Self, Self::Error> {
-        // First, remove the map element from its Value wrapper.
-        match val.as_object() {
-            Some(obj) => try_from_map(obj),
-            None => Err(LastTradeError::try_from_error()),
-        }
+        let array: Box<[BigDecimal; 2]> = ArrayWrapper::try_from(val)?.into();
+        let price = array[0].clone();
+        let lot_volume = array[1].clone();
+        Ok(LastTradeInfo{price, lot_volume})
     }
-}
-
-fn try_from_map(obj: &Map<String, Value>) -> Result<LastTradeInfo, LastTradeError> {
-    // Expected only one key in the map: "a"
-    match obj.get("c") {
-        Some(array) => try_from_array(array),
-        None => Err(LastTradeError::no_key_error()),
-    }
-}
-
-/// try_from_array is called with the value associated with
-/// the object's key "a". The value is expected to be an array of len 3.
-fn try_from_array(array: &Value) -> Result<LastTradeInfo, LastTradeError> {
-    // The Value is expected to be an array.
-    // This array is expected to have exactly three values.
-    let parsed_array: [BigDecimal; 2] = unpack_decimal_array(array)?;
-    let price = parsed_array[0].clone();
-    let lot_volume = parsed_array[1].clone();
-    Ok(LastTradeInfo { price, lot_volume })
 }
 
 #[cfg(test)]
