@@ -1,6 +1,6 @@
+use super::util::{ArrayWrapper, BidError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
-use super::util::{BidError, ArrayWrapper};
 
 pub struct BidInfo {
     pub bid: BigDecimal,

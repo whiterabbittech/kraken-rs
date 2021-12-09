@@ -83,4 +83,3 @@ impl ErrorWrapper for LastTradeInfoMetadata {
         "c"
     }
 }
-

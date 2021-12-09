@@ -1,10 +1,10 @@
-use std::marker::PhantomData;
-use bigdecimal::BigDecimal;
-use std::convert::TryFrom;
 use super::parse_error::ParseError;
-use super::ErrorWrapper;
 use super::unpack::try_from_map;
+use super::ErrorWrapper;
+use bigdecimal::BigDecimal;
 use serde_json::Value;
+use std::convert::TryFrom;
+use std::marker::PhantomData;
 
 pub struct ArrayWrapper<T, P, const N: usize>(Box<[T; N]>, PhantomData<P>);
 
@@ -14,7 +14,7 @@ impl<T, P, const N: usize> ArrayWrapper<T, P, N> {
     }
 }
 
-impl <T, P, const N: usize> From<ArrayWrapper<T, P, N>> for Box<[T; N]> {
+impl<T, P, const N: usize> From<ArrayWrapper<T, P, N>> for Box<[T; N]> {
     fn from(array: ArrayWrapper<T, P, N>) -> Self {
         array.0
     }
@@ -39,4 +39,3 @@ impl<T: ErrorWrapper, const N: usize> TryFrom<&Value> for ArrayWrapper<BigDecima
         }
     }
 }
-

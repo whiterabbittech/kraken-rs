@@ -1,6 +1,6 @@
+use super::util::{ArrayWrapper, LowError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
-use super::util::{LowError, ArrayWrapper};
 
 pub struct LowInfo {
     pub today: BigDecimal,

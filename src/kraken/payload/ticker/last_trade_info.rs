@@ -1,6 +1,6 @@
+use super::util::{ArrayWrapper, LastTradeError};
 use bigdecimal::BigDecimal;
-use serde_json::{Value};
-use super::util::{LastTradeError, ArrayWrapper};
+use serde_json::Value;
 
 pub struct LastTradeInfo {
     pub price: BigDecimal,
@@ -14,7 +14,7 @@ impl TryFrom<&Value> for LastTradeInfo {
         let array: Box<[BigDecimal; 2]> = ArrayWrapper::try_from(val)?.into();
         let price = array[0].clone();
         let lot_volume = array[1].clone();
-        Ok(LastTradeInfo{price, lot_volume})
+        Ok(LastTradeInfo { price, lot_volume })
     }
 }
 

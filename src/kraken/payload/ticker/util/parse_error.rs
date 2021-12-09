@@ -1,6 +1,6 @@
+pub use super::error_wrapper::*;
 pub use std::fmt;
 pub use std::marker::PhantomData;
-pub use super::error_wrapper::*;
 
 pub type AskError = ParseError<AskInfoMetadata>;
 pub type BidError = ParseError<BidInfoMetadata>;

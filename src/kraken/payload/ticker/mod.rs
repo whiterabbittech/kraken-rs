@@ -18,6 +18,6 @@ mod raw_ticker_response;
 mod ticker_info;
 mod ticker_input;
 mod ticker_response;
+mod util;
 mod volume_info;
 mod vwa_info;
-mod util;

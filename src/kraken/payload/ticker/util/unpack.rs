@@ -1,8 +1,8 @@
-use super::ErrorWrapper;
-use serde_json::{Map, Value};
-use bigdecimal::BigDecimal;
-use std::str::FromStr;
 use super::parse_error::ParseError;
+use super::ErrorWrapper;
+use bigdecimal::BigDecimal;
+use serde_json::{Map, Value};
+use std::str::FromStr;
 
 pub fn unpack_decimal<T: ErrorWrapper>(val: Option<&Value>) -> Result<BigDecimal, ParseError<T>> {
     match val {
