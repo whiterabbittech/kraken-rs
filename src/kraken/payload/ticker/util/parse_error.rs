@@ -7,6 +7,7 @@ pub type BidError = ParseError<BidInfoMetadata>;
 pub type HighError = ParseError<HighInfoMetadata>;
 pub type LowError = ParseError<LowInfoMetadata>;
 pub type LastTradeError = ParseError<LastTradeInfoMetadata>;
+pub type NumTradesError = ParseError<NumTradesInfoMetadata>;
 
 pub enum ParseError<T: ErrorWrapper> {
     TryFrom(PhantomData<T>),
@@ -14,6 +15,7 @@ pub enum ParseError<T: ErrorWrapper> {
     NoneValue(PhantomData<T>),
     NotAString(PhantomData<T>),
     NotAFloat(PhantomData<T>),
+    NotAU64(PhantomData<T>),
 }
 
 impl<T: ErrorWrapper> ParseError<T> {
@@ -35,6 +37,10 @@ impl<T: ErrorWrapper> ParseError<T> {
 
     pub fn not_a_float_error() -> Self {
         Self::NotAFloat(PhantomData)
+    }
+
+    pub fn not_a_u64_error() -> Self {
+        Self::NotAU64(PhantomData)
     }
 }
 
@@ -61,6 +67,10 @@ impl<T: ErrorWrapper> fmt::Display for ParseError<T> {
             Self::NotAFloat(_) => {
                 let wrapper = T::not_a_float_wrapper();
                 write!(f, "{}: String at array index is not a Number", wrapper)
+            }
+            Self::NotAU64(_) => {
+                let wrapper = T::not_a_float_wrapper();
+                write!(f, "{}: Value at array index is not a Number", wrapper)
             }
         }
     }

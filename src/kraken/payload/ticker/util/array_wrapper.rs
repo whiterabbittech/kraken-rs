@@ -1,5 +1,5 @@
 use super::parse_error::ParseError;
-use super::unpack::try_from_map;
+use super::unpack::{try_from_map, try_from_map_u64};
 use super::ErrorWrapper;
 use bigdecimal::BigDecimal;
 use serde_json::Value;
@@ -20,14 +20,6 @@ impl<T, P, const N: usize> From<ArrayWrapper<T, P, N>> for Box<[T; N]> {
     }
 }
 
-/*
-impl<T, P, const N: usize> Into<[T; N]> for ArrayWrapper<T, P, N> {
-    fn into(self) -> Box<[T; N]> {
-        self.0.take()
-    }
-}
-*/
-
 impl<T: ErrorWrapper, const N: usize> TryFrom<&Value> for ArrayWrapper<BigDecimal, T, N> {
     type Error = ParseError<T>;
 
@@ -35,6 +27,18 @@ impl<T: ErrorWrapper, const N: usize> TryFrom<&Value> for ArrayWrapper<BigDecima
         // First, remove the map element from its Value wrapper.
         match val.as_object() {
             Some(obj) => try_from_map(obj).map(|val| ArrayWrapper::new(val)),
+            None => Err(ParseError::<T>::try_from_error()),
+        }
+    }
+}
+
+impl<T: ErrorWrapper, const N: usize> TryFrom<&Value> for ArrayWrapper<u64, T, N> {
+    type Error = ParseError<T>;
+
+    fn try_from(val: &Value) -> Result<Self, Self::Error> {
+        // First, remove the map element from its Value wrapper.
+        match val.as_object() {
+            Some(obj) => try_from_map_u64(obj).map(|val| ArrayWrapper::new(val)),
             None => Err(ParseError::<T>::try_from_error()),
         }
     }

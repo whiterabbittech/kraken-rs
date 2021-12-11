@@ -83,3 +83,14 @@ impl ErrorWrapper for LastTradeInfoMetadata {
         "c"
     }
 }
+
+pub struct NumTradesInfoMetadata {}
+
+impl ErrorWrapper for NumTradesInfoMetadata {
+    fn wrapper() -> &'static str {
+        "Error Parsing NumTrades"
+    }
+    fn key() -> &'static str {
+        "t"
+    }
+}
