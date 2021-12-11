@@ -94,3 +94,25 @@ impl ErrorWrapper for NumTradesInfoMetadata {
         "t"
     }
 }
+
+pub struct VolumeInfoMetadata {}
+
+impl ErrorWrapper for VolumeInfoMetadata {
+    fn wrapper() -> &'static str {
+        "Error Parsing VolumeInfo"
+    }
+    fn key() -> &'static str {
+        "v"
+    }
+}
+
+pub struct VWAInfoMetadata {}
+
+impl ErrorWrapper for VWAInfoMetadata {
+    fn wrapper() -> &'static str {
+        "Error Parsing VWAInfo"
+    }
+    fn key() -> &'static str {
+        "p"
+    }
+}

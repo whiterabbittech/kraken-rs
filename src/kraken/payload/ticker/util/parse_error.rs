@@ -8,6 +8,8 @@ pub type HighError = ParseError<HighInfoMetadata>;
 pub type LowError = ParseError<LowInfoMetadata>;
 pub type LastTradeError = ParseError<LastTradeInfoMetadata>;
 pub type NumTradesError = ParseError<NumTradesInfoMetadata>;
+pub type VolumeError = ParseError<VolumeInfoMetadata>;
+pub type VWAError = ParseError<VWAInfoMetadata>;
 
 pub enum ParseError<T: ErrorWrapper> {
     TryFrom(PhantomData<T>),
@@ -17,6 +19,8 @@ pub enum ParseError<T: ErrorWrapper> {
     NotAFloat(PhantomData<T>),
     NotAU64(PhantomData<T>),
 }
+
+impl<T: ErrorWrapper> std::error::Error for ParseError<T> {}
 
 impl<T: ErrorWrapper> ParseError<T> {
     pub fn try_from_error() -> Self {

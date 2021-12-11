@@ -33,11 +33,6 @@ pub fn unpack_u64<T: ErrorWrapper>(val: Option<&Value>) -> Result<u64, ParseErro
     }
 }
 
-fn unpack_u64_str<T: ErrorWrapper>(val: &str) -> Result<u64, ParseError<T>> {
-    let parsed_decimal = u64::from_str(val);
-    parsed_decimal.map_err(|_| ParseError::<T>::not_a_float_error())
-}
-
 pub fn unpack_decimal<T: ErrorWrapper>(val: Option<&Value>) -> Result<BigDecimal, ParseError<T>> {
     match val {
         Some(v) => unpack_unwrapped_decimal(v),

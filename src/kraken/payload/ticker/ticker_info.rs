@@ -1,16 +1,17 @@
-use super::{AskInfo, BidInfo, LastTradeInfo, NumTradesInfo};
-use bigdecimal::BigDecimal;
+use super::{
+    AskInfo, BidInfo, HighInfo, LastTradeInfo, LowInfo, NumTradesInfo, VWAInfo, VolumeInfo,
+};
 
 pub struct TickerInfo {
+    pub ticker: String,
     pub ask: AskInfo,
     pub bid: BidInfo,
+    pub high: HighInfo,
+    pub low: LowInfo,
     pub last_trade_closed: LastTradeInfo,
-    pub volume: NumTradesInfo,
-    pub daily_low: BigDecimal,
-    pub rolling_24h_low: BigDecimal,
-    pub daily_high: BigDecimal,
-    pub rolling_24h_high: BigDecimal,
-    pub opening_price: BigDecimal,
-    pub daily_volume_weighted_avg_price: BigDecimal,
-    pub rolling_24h_volume_weighted_avg_price: BigDecimal,
+    pub num_trades: NumTradesInfo,
+    pub volume: VolumeInfo,
+    pub vol_weighted_avg: VWAInfo,
+    // TODO: Revisit capturing this value.
+    // pub opening_price: BigDecimal,
 }

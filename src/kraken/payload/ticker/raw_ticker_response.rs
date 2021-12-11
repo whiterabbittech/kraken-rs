@@ -4,6 +4,6 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 pub struct RawTickerResponse {
-    error: Vec<String>,
-    result: Option<HashMap<String, Value>>,
+    pub error: Vec<String>,
+    pub result: Option<HashMap<String, Value>>,
 }
