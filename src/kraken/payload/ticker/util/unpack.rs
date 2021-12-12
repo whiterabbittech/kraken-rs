@@ -28,7 +28,7 @@ pub fn unpack_u64_array<T: ErrorWrapper, const N: usize>(
 
 pub fn unpack_u64<T: ErrorWrapper>(val: Option<&Value>) -> Result<u64, ParseError<T>> {
     match val {
-        Some(v) => v.as_u64().ok_or(ParseError::<T>::not_a_u64_error()),
+        Some(v) => v.as_u64().ok_or_else(ParseError::<T>::not_a_u64_error),
         None => Err(ParseError::<T>::none_value_error()),
     }
 }
