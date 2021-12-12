@@ -19,6 +19,10 @@ impl LeakyBucket {
     pub fn new(tier: AccountTier) -> Self {
         let config = Self::bucket_configuration(tier);
         let (sender, receiver) = flume::bounded(config.max_size.into());
+        // Fill the bucket, initializing the semaphore resources
+        for _ in 0..config.max_size {
+            sender.send(()).unwrap();
+        }
         tokio::spawn(async move {
             loop {
                 std::thread::sleep(config.fill_rate);

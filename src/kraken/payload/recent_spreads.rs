@@ -57,6 +57,7 @@ fn parse_spread_json(args: (&String, &Value)) -> Vec<Spread> {
         .collect()
 }
 
+// TODO: This should be converted into a FromStr implementation.
 impl From<RawRecentSpreadsResponse> for RecentSpreadsResponse {
     fn from(raw: RawRecentSpreadsResponse) -> Self {
         let error = raw.error;

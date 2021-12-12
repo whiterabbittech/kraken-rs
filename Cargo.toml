@@ -11,6 +11,7 @@ repository = "https://github.com/whiterabbittech/kraken-rs"
 exclude = ["Makefile.toml"]
 
 [dependencies]
+bigdecimal = "0.3.0"
 chrono = { version = "0.4", features = ["serde"] }
 data-encoding = "2.3"
 flume = "0.10.9"
