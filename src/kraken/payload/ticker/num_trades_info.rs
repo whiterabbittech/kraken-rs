@@ -1,6 +1,7 @@
 use super::util::{ArrayWrapper, NumTradesError};
 use serde_json::Value;
 
+#[derive(Debug)]
 pub struct NumTradesInfo {
     //pub daily_volume: u64,
     //pub rolling_24h_volume: u64,

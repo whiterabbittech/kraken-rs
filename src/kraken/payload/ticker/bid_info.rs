@@ -2,6 +2,7 @@ use super::util::{ArrayWrapper, BidError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
 
+#[derive(Debug)]
 pub struct BidInfo {
     pub bid: BigDecimal,
     pub whole_lot_volume: BigDecimal,

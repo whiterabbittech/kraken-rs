@@ -1,4 +1,3 @@
-use super::util::{ErrorWrapper, ParseError};
 use super::{
     AskInfo, BidInfo, HighInfo, LastTradeInfo, LowInfo, NumTradesInfo, RawTickerResponse,
     TickerInfo, VWAInfo, VolumeInfo,
@@ -6,6 +5,7 @@ use super::{
 use std::convert::TryFrom;
 use std::error::Error;
 
+#[derive(Debug)]
 pub struct TickerResponse {
     pub error: Vec<String>,
     pub result: Option<Vec<TickerInfo>>,

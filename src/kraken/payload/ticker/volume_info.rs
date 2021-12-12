@@ -2,6 +2,7 @@ use super::util::{ArrayWrapper, VolumeError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
 
+#[derive(Debug)]
 pub struct VolumeInfo {
     pub daily_volume: BigDecimal,
     pub rolling_24h_volume: BigDecimal,

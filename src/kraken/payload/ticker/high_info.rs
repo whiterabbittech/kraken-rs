@@ -2,6 +2,7 @@ use super::util::{ArrayWrapper, HighError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
 
+#[derive(Debug)]
 pub struct HighInfo {
     pub today: BigDecimal,
     pub rolling_24h: BigDecimal,

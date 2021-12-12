@@ -1,8 +1,8 @@
 use crate::kraken::env::KrakenCredentials;
 use crate::kraken::payload::{
     self, AssetInfoInput, AssetInfoResponse, AssetPairsInfo, AssetPairsInput, AssetPairsResponse,
-    RawRecentSpreadsResponse, RecentSpreadsInput, RecentSpreadsResponse,
-    SerializableAssetPairsInput,
+    RawRecentSpreadsResponse, RawTickerResponse, RecentSpreadsInput, RecentSpreadsResponse,
+    SerializableAssetPairsInput, TickerInput, TickerResponse,
 };
 use crate::kraken::ratelimiter::LeakyBucket;
 use crate::kraken::request_builder::{ParamEncoding, PrivacyLevel, RequestBuilder};
@@ -15,6 +15,7 @@ use crate::kraken::{
 use chrono::prelude::*;
 use reqwest::header::{HeaderValue, CONTENT_TYPE};
 use reqwest::Method;
+use std::error::Error;
 
 pub struct Client {
     http: reqwest::Client,
@@ -151,6 +152,22 @@ impl Client {
         Ok(resp)
     }
 
+    pub async fn ticker(&self, asset_pair: AssetPair) -> Result<TickerResponse, Box<dyn Error>> {
+        self.use_rate_limit(1).await;
+        let pair = asset_pair.to_string();
+        let client = &self.http;
+        let req = RequestBuilder {
+            method: Method::GET,
+            url: endpoint(TICKER),
+            param_encoding: ParamEncoding::QueryEncoded,
+            params: Some(TickerInput { pair }),
+            privacy_level: PrivacyLevel::Public,
+        };
+        let resp: RawTickerResponse = req.execute(client).await?;
+        let ticker = TickerResponse::try_from(resp)?;
+        Ok(ticker)
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // Everything under this line does not strongly type their responses. /////
     ///////////////////////////////////////////////////////////////////////////
@@ -184,18 +201,6 @@ impl Client {
         // We also need to attach the API-Sign header.
         let api_sign = HeaderValue::from_str(&signature).unwrap();
         req.headers_mut().insert("API-Sign", api_sign);
-        let resp = self.http.execute(req).await?.text().await?;
-        Ok(resp)
-    }
-
-    pub async fn ticker(&self, asset: AssetPair) -> Result<String, reqwest::Error> {
-        self.use_rate_limit(1).await;
-        // Clone the current HTTP client.
-        let method = Method::GET;
-        let url = endpoint(TICKER);
-        let query_param = &[("pair", &asset.to_string())];
-
-        let req = self.http.request(method, url).query(query_param).build()?;
         let resp = self.http.execute(req).await?.text().await?;
         Ok(resp)
     }

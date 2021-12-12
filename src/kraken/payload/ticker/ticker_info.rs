@@ -2,6 +2,7 @@ use super::{
     AskInfo, BidInfo, HighInfo, LastTradeInfo, LowInfo, NumTradesInfo, VWAInfo, VolumeInfo,
 };
 
+#[derive(Debug)]
 pub struct TickerInfo {
     pub ticker: String,
     pub ask: AskInfo,
