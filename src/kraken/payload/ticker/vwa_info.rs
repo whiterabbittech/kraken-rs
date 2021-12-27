@@ -2,7 +2,7 @@ use super::util::{ArrayWrapper, VWAError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VWAInfo {
     pub daily_volume: BigDecimal,
     pub rolling_24h_volume: BigDecimal,

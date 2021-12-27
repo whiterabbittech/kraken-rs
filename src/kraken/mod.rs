@@ -6,6 +6,7 @@ pub use endpoints::{
     SYSTEM_TIME, TICKER, TRADE_BALANCE,
 };
 pub use env::KrakenCredentials;
+pub use payload::TickerInfo;
 
 mod account_tier;
 mod asset_pair;

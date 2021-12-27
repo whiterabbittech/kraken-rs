@@ -1,6 +1,6 @@
 [package]
 name = "kraken-http"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Felix Bracken <crates@whiterabbit.llc>"]
 edition = "2021"
 license = "MIT"

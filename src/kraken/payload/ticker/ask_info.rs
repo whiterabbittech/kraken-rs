@@ -2,7 +2,7 @@ use super::util::{ArrayWrapper, AskError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AskInfo {
     pub ask: BigDecimal,
     pub whole_lot_volume: BigDecimal,

@@ -2,7 +2,7 @@ use super::util::{ArrayWrapper, LowError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LowInfo {
     pub today: BigDecimal,
     pub rolling_24h: BigDecimal,

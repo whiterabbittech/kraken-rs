@@ -2,7 +2,7 @@ use super::util::{ArrayWrapper, LastTradeError};
 use bigdecimal::BigDecimal;
 use serde_json::Value;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LastTradeInfo {
     pub price: BigDecimal,
     pub lot_volume: BigDecimal,

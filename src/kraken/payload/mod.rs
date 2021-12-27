@@ -9,7 +9,7 @@ pub use recent_spreads::{
 };
 pub use server_time::ServerTimeResponse;
 pub use system_status::SystemStatusResponse;
-pub use ticker::{RawTickerResponse, TickerInput, TickerResponse};
+pub use ticker::{RawTickerResponse, TickerInfo, TickerInput, TickerResponse};
 pub use trade_balance::TradeBalanceInput;
 
 mod account_balance;
